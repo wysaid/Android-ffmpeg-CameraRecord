@@ -15,6 +15,8 @@ public class MainActivity extends ActionBarActivity {
     public Button mTakePicBtn;
     public Button mRecordBtn;
 
+    public final static String LOG_TAG = MyGLSurfaceView.LOG_TAG;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -23,9 +25,11 @@ public class MainActivity extends ActionBarActivity {
         mTakePicBtn = (Button)findViewById(R.id.takeShotBtn);
         mRecordBtn = (Button)findViewById(R.id.recordBtn);
 
-        mTakePicBtn.setOnClickListener(
-            (View v) -> {
-                //Log.i(MyGLSurfaceView.LOG_TAG, )
+        mTakePicBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.i(LOG_TAG, "Taking Picture...");
+            }
         });
     }
 
