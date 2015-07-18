@@ -26,7 +26,7 @@ public class ProgramObject {
         return mProgramID;
     }
 
-    public void release() {
+    public final void release() {
         if(mProgramID != 0)
         {
             GLES20.glDeleteProgram(mProgramID);
@@ -178,7 +178,7 @@ public class ProgramObject {
             return true;
         }
 
-        public void release() {
+        public final void release() {
             if(mShaderID == 0)
                 return;
             GLES20.glDeleteShader(mShaderID);
