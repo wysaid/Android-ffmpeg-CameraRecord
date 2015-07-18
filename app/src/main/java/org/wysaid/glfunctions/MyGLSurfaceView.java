@@ -1,4 +1,4 @@
-package org.wysaid.android_ffmpeg_camerarecord;
+package org.wysaid.glfunctions;
 
 import android.content.Context;
 import android.graphics.SurfaceTexture;
@@ -15,11 +15,12 @@ import javax.microedition.khronos.opengles.GL10;
  */
 public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Renderer, SurfaceTexture.OnFrameAvailableListener {
 
-    public static final String LOG_TAG = "wysaid";
+    public static final String LOG_TAG = Common.LOG_TAG;
 
     public int viewWidth;
     public int viewHeight;
 
+    private FrameRenderer myRenderer;
 
     public MyGLSurfaceView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -35,11 +36,10 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
         Log.i(LOG_TAG, "onSurfaceCreated...");
 
-
-
         GLES20.glClearColor(1.0f, 1.0f, 0.3f, 1.0f);
         GLES20.glDisable(GLES20.GL_DEPTH_TEST);
 
+        myRenderer = new FrameRenderer();
         requestRender();
     }
 
@@ -56,6 +56,8 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
     @Override
     public void onDrawFrame(GL10 gl) {
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
+
+        myRenderer.renderTexture(0);
     }
 
     @Override

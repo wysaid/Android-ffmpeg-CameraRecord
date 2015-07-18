@@ -11,7 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <org.wysaid.android_ffmpeg_camerarecord.MyGLSurfaceView
+        <org.wysaid.glfunctions.MyGLSurfaceView
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
     </FrameLayout>
@@ -32,7 +32,7 @@
             android:layout_width="100dp"
             android:layout_height="match_parent"
             android:id="@+id/recordBtn"
-            android:text="拍点按录像"
+            android:text="点按录像"
              />
     </LinearLayout>
 
