@@ -1,20 +1,26 @@
 package org.wysaid.glfunctions;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.SurfaceTexture;
 import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
+
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.SurfaceHolder;
-import android.view.ViewParent;
-import android.widget.FrameLayout;
 
-import org.wysaid.android_ffmpeg_camerarecord.R;
 import org.wysaid.camera.CameraInstance;
+import org.wysaid.myutils.ImageUtil;
+
+import java.nio.IntBuffer;
 
 import javax.microedition.khronos.egl.EGLConfig;
+//import javax.microedition.khronos.egl.EGL10;
+//import javax.microedition.khronos.egl.EGLContext;
+//import javax.microedition.khronos.egl.EGLDisplay;
+//import javax.microedition.khronos.egl.EGLSurface;
 import javax.microedition.khronos.opengles.GL10;
 
 /**
@@ -38,6 +44,24 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
     }
 
     public Viewport drawViewport;
+
+    public float waveMotion = 0.0f;
+
+    private boolean mShouldTakeshot = false;
+
+    public synchronized void takeShot() {
+        mShouldTakeshot = true;
+    }
+
+//    public class EGLEnv {
+//        EGLDisplay display;
+//        EGLSurface surfaceRead;
+//        EGLSurface surfaceWrite;
+//        EGLContext context;
+//    }
+//
+//    public EGLEnv eglEnv;
+//    public EGL10 egl;
 
     private CameraInstance cameraInstance() {
         return CameraInstance.getInstance();
@@ -102,6 +126,15 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
         }
 
         calcViewport();
+//        try {
+//            egl = (EGL10) EGLContext.getEGL();
+//            eglEnv.display = egl.eglGetCurrentDisplay();
+//            eglEnv.surfaceRead = egl.eglGetCurrentSurface(egl.EGL_READ);
+//            eglEnv.surfaceWrite = egl.eglGetCurrentSurface(egl.EGL_DRAW);
+//            eglEnv.context = egl.eglGetCurrentContext();
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
     }
 
     @Override
@@ -118,10 +151,40 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
 //        myRenderer.renderTexture(mTextureID);
         myRenderer.renderTextureExternalOES(mTextureID);
 
+        if(mShouldTakeshot) {
+            _takeShot();
+            mShouldTakeshot = false;
+        }
+
         if(mSurfaceTexture != null)
             mSurfaceTexture.updateTexImage();
 
 //        Log.i(LOG_TAG, "onDrawFrame...");
+
+        waveMotion += 0.4f;
+        if(waveMotion > 1e6f) {
+            waveMotion -= 1e6f;
+        }
+        myRenderer.setWaveMotion(waveMotion);
+    }
+
+    private void _takeShot() {
+        cameraInstance().stopPreview();
+
+        IntBuffer buffer = IntBuffer.allocate(drawViewport.width * drawViewport.height);
+
+//        if(egl != null && eglEnv.display != null)
+//        {
+//            egl.eglMakeCurrent(eglEnv.display, eglEnv.surfaceWrite, eglEnv.surfaceRead, eglEnv.context);
+//        }
+
+        GLES20.glReadPixels(drawViewport.x, drawViewport.y, drawViewport.width, drawViewport.height, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, buffer);
+
+        Bitmap bmp = Bitmap.createBitmap(buffer.array(), drawViewport.width, drawViewport.height, Bitmap.Config.ARGB_8888);
+
+        ImageUtil.saveBitmap(bmp);
+
+        cameraInstance().startPreview(mSurfaceTexture);
     }
 
     @Override

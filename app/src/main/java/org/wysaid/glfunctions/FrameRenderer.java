@@ -39,6 +39,21 @@ public class FrameRenderer {
             "   gl_FragColor = texture2D(inputImageTexture, texCoord);\n" +
             "}";
 
+    private static final String fshWave_ExternalOES = "" +
+            "#extension GL_OES_EGL_image_external : require\n"+
+            "precision mediump float;\n" +
+            "varying vec2 texCoord;\n" +
+            "uniform samplerExternalOES inputImageTexture;\n" +
+            "uniform float motion;\n" +
+            "const float angle = 20.0;" +
+            "void main()\n" +
+            "{\n" +
+            "   vec2 coord;\n" +
+            "   coord.x = texCoord.x + 0.01 * sin(motion + texCoord.x * angle);\n" +
+            "   coord.y = texCoord.y + 0.01 * sin(motion + texCoord.y * angle);\n" +
+            "   gl_FragColor = texture2D(inputImageTexture, coord);\n" +
+            "}";
+
     private static final String POSITION_NAME = "vPosition";
     private static final String ROTATION_NAME = "rotation";
 
@@ -50,6 +65,8 @@ public class FrameRenderer {
     private ProgramObject mProgramExt;
 
     public float[] mRotation;
+
+    private int mMotionLoc = 0;
 
     public FrameRenderer() {
         int[] vertexBuffer = new int[1];
@@ -70,9 +87,17 @@ public class FrameRenderer {
 
         mProgramExt = new ProgramObject();
         mProgramExt.bindAttribLocation(POSITION_NAME, 0);
-        mProgramExt.init(vshDraw, fshBlur_ExternalOES);
+//        mProgramExt.init(vshDraw, fshBlur_ExternalOES);
+        mProgramExt.init(vshDraw, fshWave_ExternalOES);
+        mProgramExt.bind();
+        mMotionLoc = mProgramExt.getUniformLoc("motion");
 
         setRotation(0.0f);
+    }
+
+    public void setWaveMotion(float motion) {
+        mProgramExt.bind();
+        GLES20.glUniform1f(mMotionLoc, motion);
     }
 
     void release() {

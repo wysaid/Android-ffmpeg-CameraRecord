@@ -17,8 +17,9 @@ import org.wysaid.glfunctions.MyGLSurfaceView;
 
 public class MainActivity extends Activity {
 
-    public Button mTakePicBtn;
-    public Button mRecordBtn;
+    private Button mTakePicBtn;
+    private Button mRecordBtn;
+    private MyGLSurfaceView mGLSurfaceView;
 
     public final static String LOG_TAG = MyGLSurfaceView.LOG_TAG;
 
@@ -29,11 +30,18 @@ public class MainActivity extends Activity {
 
         mTakePicBtn = (Button)findViewById(R.id.takeShotBtn);
         mRecordBtn = (Button)findViewById(R.id.recordBtn);
+        mGLSurfaceView = (MyGLSurfaceView)findViewById(R.id.myGLSurfaceView);
 
         mTakePicBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Log.i(LOG_TAG, "Taking Picture...");
+                mGLSurfaceView.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        mGLSurfaceView.takeShot();
+                    }
+                });
             }
         });
 
