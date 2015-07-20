@@ -1,6 +1,7 @@
 package org.wysaid.android_ffmpeg_camerarecord;
 
 import android.app.Activity;
+import android.graphics.Rect;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -9,6 +10,7 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
+import android.widget.FrameLayout;
 
 import org.wysaid.glfunctions.MyGLSurfaceView;
 
@@ -38,8 +40,7 @@ public class MainActivity extends Activity {
         mRecordBtn.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                switch (event.getAction())
-                {
+                switch (event.getAction()) {
                     case MotionEvent.ACTION_DOWN:
                         Log.i(LOG_TAG, "Start recording...");
 
@@ -52,10 +53,7 @@ public class MainActivity extends Activity {
                 return true;
             }
         });
-
     }
-
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

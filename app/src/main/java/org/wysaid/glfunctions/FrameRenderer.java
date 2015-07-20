@@ -17,7 +17,7 @@ public class FrameRenderer {
             "void main()\n" +
             "{\n" +
             "   gl_Position = vec4(vPosition, 0.0, 1.0);\n" +
-            "   texCoord = rotation * (vPosition / 2.0) + 0.5;\n" +
+            "   texCoord = (vec2(vPosition.x, -vPosition.y) / 2.0) * rotation + 0.5;\n" +
             "}";
 
     private static final String fshBlur = "" +

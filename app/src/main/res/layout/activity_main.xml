@@ -8,12 +8,15 @@
     tools:context=".MainActivity">
 
     <FrameLayout
+        android:id="@+id/glviewFrameLayout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        >
 
         <org.wysaid.glfunctions.MyGLSurfaceView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:id="@+id/myGLSurfaceView"
+            android:layout_width="480px"
+            android:layout_height="640px" />
     </FrameLayout>
 
     <LinearLayout
