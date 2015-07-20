@@ -29,6 +29,8 @@ public class CameraInstance {
     private int mDefaultCameraID = -1;
 
     private static CameraInstance mThisInstance;
+    private int mPreviewWidth;
+    private int mPreviewHeight;
 
     private CameraInstance() {}
 
@@ -40,6 +42,9 @@ public class CameraInstance {
     }
 
     public boolean isPreviewing() { return mIsPreviewing; }
+
+    public int previewWidth() { return mPreviewWidth; }
+    public int previewHeight() { return mPreviewHeight; }
 
     public interface CameraOpenCallback {
         void cameraReady();
@@ -159,8 +164,9 @@ public class CameraInstance {
                 prevSz = sz;
         }
 
-        mCameraDevice.setDisplayOrientation(90);
 
+        mParams.setPreviewSize(prevSz.width, prevSz.height);
+        mParams.setPictureSize(picSz.width, picSz.height);
         mParams.setFocusMode(mParams.FOCUS_MODE_CONTINUOUS_VIDEO);
         mParams.setPreviewFrameRate(previewRate); //设置相机预览帧率
 
@@ -172,6 +178,9 @@ public class CameraInstance {
 
         Camera.Size szPic = mParams.getPictureSize();
         Camera.Size szPrev = mParams.getPreviewSize();
+
+        mPreviewWidth = szPrev.width;
+        mPreviewHeight = szPrev.height;
 
         Log.i(LOG_TAG, String.format("Camera Picture Size: %d x %d", szPic.width, szPic.height));
         Log.i(LOG_TAG, String.format("Camera Preview Size: %d x %d", szPrev.width, szPrev.height));

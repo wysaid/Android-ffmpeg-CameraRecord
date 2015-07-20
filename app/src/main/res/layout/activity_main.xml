@@ -15,8 +15,8 @@
 
         <org.wysaid.glfunctions.MyGLSurfaceView
             android:id="@+id/myGLSurfaceView"
-            android:layout_width="480px"
-            android:layout_height="640px" />
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
     </FrameLayout>
 
     <LinearLayout

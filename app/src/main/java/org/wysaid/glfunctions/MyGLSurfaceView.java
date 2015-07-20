@@ -32,10 +32,16 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
     private SurfaceTexture mSurfaceTexture;
     private int mTextureID;
 
+    public class Viewport {
+        public int x, y;
+        public int width, height;
+    }
+
+    public Viewport drawViewport;
+
     private CameraInstance cameraInstance() {
         return CameraInstance.getInstance();
     }
-
 
     public MyGLSurfaceView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -69,31 +75,19 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
                 Log.i(LOG_TAG, "tryOpenCamera OK...");
             }
         });
-
-        resetLayouts();
     }
 
-    private void resetLayouts() {
-        FrameLayout frame = (FrameLayout)getParent();
-        MyGLSurfaceView view = (MyGLSurfaceView)findViewById(R.id.myGLSurfaceView);
+    private void calcViewport() {
+        float camHeight = (float)cameraInstance().previewWidth();
+        float camWidth = (float)cameraInstance().previewHeight();
 
-        try {
+        drawViewport = new Viewport();
 
-            int w = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED);
-            int h = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED);
-
-            frame.measure(w, h);
-            view.measure(w, h);
-
-            float sx = frame.getWidth() / (float) view.getWidth();
-            float sy = frame.getHeight() / (float) view.getHeight();
-            view.setScaleX(sx);
-            view.setScaleY(sy);
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-            Log.e(LOG_TAG, "resetLayouts failed!");
-        }
+        float scale = Math.min(viewWidth / camWidth, viewHeight / camHeight);
+        drawViewport.width = (int)(camWidth * scale);
+        drawViewport.height = (int)(camHeight * scale);
+        drawViewport.x = (viewWidth - drawViewport.width) / 2;
+        drawViewport.y = (viewHeight - drawViewport.height) / 2;
     }
 
     @Override
@@ -103,11 +97,11 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
         viewWidth = width;
         viewHeight = height;
 
-        GLES20.glViewport(0, 0, width, height);
-
         if(!cameraInstance().isPreviewing()) {
             cameraInstance().startPreview(mSurfaceTexture);
         }
+
+        calcViewport();
     }
 
     @Override
@@ -120,6 +114,7 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
     public void onDrawFrame(GL10 gl) {
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
 
+        GLES20.glViewport(drawViewport.x, drawViewport.y, drawViewport.width, drawViewport.height);
 //        myRenderer.renderTexture(mTextureID);
         myRenderer.renderTextureExternalOES(mTextureID);
 
