@@ -105,7 +105,7 @@ public class CameraInstance {
     }
 
     public void startPreview(SurfaceTexture texture) {
-        Log.i(LOG_TAG, "startPreview...");
+        Log.i(LOG_TAG, "Camera startPreview...");
         if(mIsPreviewing) {
             Log.i(LOG_TAG, "Err: camera is previewing...");
             stopPreview();
@@ -125,6 +125,7 @@ public class CameraInstance {
     }
 
     public void stopPreview() {
+        Log.i(LOG_TAG, "Camera stopPreview...");
         if(mIsPreviewing && mCameraDevice != null) {
             mIsPreviewing = false;
             mCameraDevice.stopPreview();

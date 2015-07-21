@@ -2,6 +2,7 @@ package org.wysaid.glfunctions;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.PixelFormat;
 import android.graphics.SurfaceTexture;
 import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
@@ -47,22 +48,6 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
 
     public float waveMotion = 0.0f;
 
-    private boolean mShouldTakeshot = false;
-
-    public synchronized void takeShot() {
-        mShouldTakeshot = true;
-    }
-
-//    public class EGLEnv {
-//        EGLDisplay display;
-//        EGLSurface surfaceRead;
-//        EGLSurface surfaceWrite;
-//        EGLContext context;
-//    }
-//
-//    public EGLEnv eglEnv;
-//    public EGL10 egl;
-
     private CameraInstance cameraInstance() {
         return CameraInstance.getInstance();
     }
@@ -72,6 +57,7 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
         Log.i(LOG_TAG, "MyGLSurfaceView Construct...");
 
         setEGLContextClientVersion(2);
+        getHolder().setFormat(PixelFormat.TRANSLUCENT);
         setRenderer(this);
         setRenderMode(RENDERMODE_WHEN_DIRTY);
 //        setEGLConfigChooser(8, 8, 8, 8, 16, 0);
@@ -83,6 +69,7 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
 
         GLES20.glClearColor(1.0f, 1.0f, 0.3f, 1.0f);
         GLES20.glDisable(GLES20.GL_DEPTH_TEST);
+        GLES20.glDisable(GLES20.GL_STENCIL_TEST);
 
         mTextureID = genSurfaceTextureID();
         mSurfaceTexture = new SurfaceTexture(mTextureID);
@@ -126,15 +113,6 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
         }
 
         calcViewport();
-//        try {
-//            egl = (EGL10) EGLContext.getEGL();
-//            eglEnv.display = egl.eglGetCurrentDisplay();
-//            eglEnv.surfaceRead = egl.eglGetCurrentSurface(egl.EGL_READ);
-//            eglEnv.surfaceWrite = egl.eglGetCurrentSurface(egl.EGL_DRAW);
-//            eglEnv.context = egl.eglGetCurrentContext();
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
     }
 
     @Override
@@ -151,40 +129,40 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
 //        myRenderer.renderTexture(mTextureID);
         myRenderer.renderTextureExternalOES(mTextureID);
 
-        if(mShouldTakeshot) {
-            _takeShot();
-            mShouldTakeshot = false;
-        }
-
         if(mSurfaceTexture != null)
             mSurfaceTexture.updateTexImage();
 
 //        Log.i(LOG_TAG, "onDrawFrame...");
 
         waveMotion += 0.4f;
-        if(waveMotion > 1e6f) {
-            waveMotion -= 1e6f;
+        if(waveMotion > 1e3f) {
+            waveMotion -= 1e3f;
         }
         myRenderer.setWaveMotion(waveMotion);
     }
 
-    private void _takeShot() {
-        cameraInstance().stopPreview();
+    private IntBuffer mBuffer;
 
-        IntBuffer buffer = IntBuffer.allocate(drawViewport.width * drawViewport.height);
+    public synchronized void takeShot() {
+//        cameraInstance().stopPreview();
 
-//        if(egl != null && eglEnv.display != null)
-//        {
-//            egl.eglMakeCurrent(eglEnv.display, eglEnv.surfaceWrite, eglEnv.surfaceRead, eglEnv.context);
-//        }
+        if(mBuffer == null || mBuffer.limit() != drawViewport.width * drawViewport.height)
+        {
+            mBuffer = IntBuffer.allocate(drawViewport.width * drawViewport.height);
+        }
 
-        GLES20.glReadPixels(drawViewport.x, drawViewport.y, drawViewport.width, drawViewport.height, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, buffer);
+        queueEvent(new Runnable() {
+            @Override
+            public void run() {
+                Log.i(LOG_TAG, "Taking shot...");
+                GLES20.glReadPixels(drawViewport.x, drawViewport.y, drawViewport.width, drawViewport.height, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, mBuffer);
 
-        Bitmap bmp = Bitmap.createBitmap(buffer.array(), drawViewport.width, drawViewport.height, Bitmap.Config.ARGB_8888);
+                Bitmap bmp = Bitmap.createBitmap(mBuffer.array(), drawViewport.width, drawViewport.height, Bitmap.Config.ARGB_8888);
+                ImageUtil.saveBitmap(bmp);
+            }
+        });
 
-        ImageUtil.saveBitmap(bmp);
-
-        cameraInstance().startPreview(mSurfaceTexture);
+//        cameraInstance().startPreview(mSurfaceTexture);
     }
 
     @Override
