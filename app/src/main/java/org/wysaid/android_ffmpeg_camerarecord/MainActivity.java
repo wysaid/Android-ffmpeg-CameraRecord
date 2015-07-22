@@ -1,8 +1,6 @@
 package org.wysaid.android_ffmpeg_camerarecord;
 
 import android.app.Activity;
-import android.graphics.Rect;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -10,7 +8,6 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
-import android.widget.FrameLayout;
 
 import org.wysaid.glfunctions.MyGLSurfaceView;
 
@@ -22,6 +19,11 @@ public class MainActivity extends Activity {
     private MyGLSurfaceView mGLSurfaceView;
 
     public final static String LOG_TAG = MyGLSurfaceView.LOG_TAG;
+
+    public static MainActivity mCurrentInstance = null;
+    public static MainActivity getInstance() {
+        return mCurrentInstance;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,16 +53,20 @@ public class MainActivity extends Activity {
                 switch (event.getAction()) {
                     case MotionEvent.ACTION_DOWN:
                         Log.i(LOG_TAG, "Start recording...");
-
+                        mGLSurfaceView.setClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+                        mGLSurfaceView.startRecording();
                         break;
                     case MotionEvent.ACTION_UP:
                         Log.i(LOG_TAG, "End recording...");
-
+                        mGLSurfaceView.setClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+                        mGLSurfaceView.endRecording();
                         break;
                 }
                 return true;
             }
         });
+
+        mCurrentInstance = this;
     }
 
     @Override

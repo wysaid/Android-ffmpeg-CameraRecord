@@ -14,14 +14,12 @@ import android.view.SurfaceHolder;
 
 import org.wysaid.camera.CameraInstance;
 import org.wysaid.myutils.ImageUtil;
+import org.wysaid.recorder.MyRecorderWrapper;
 
+import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
 import javax.microedition.khronos.egl.EGLConfig;
-//import javax.microedition.khronos.egl.EGL10;
-//import javax.microedition.khronos.egl.EGLContext;
-//import javax.microedition.khronos.egl.EGLDisplay;
-//import javax.microedition.khronos.egl.EGLSurface;
 import javax.microedition.khronos.opengles.GL10;
 
 /**
@@ -39,6 +37,9 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
     private SurfaceTexture mSurfaceTexture;
     private int mTextureID;
 
+    private MyRecorderWrapper mVideoRecorder;
+    private ByteBuffer mByteFrameBuffer;
+
     public class Viewport {
         public int x, y;
         public int width, height;
@@ -46,10 +47,39 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
 
     public Viewport drawViewport;
 
+    public class ClearColor {
+        public float r, g, b, a;
+    }
+
+    public ClearColor clearColor;
+
+    public void setClearColor(float r, float g, float b, float a) {
+        clearColor.r = r;
+        clearColor.g = g;
+        clearColor.b = b;
+        clearColor.a = a;
+        queueEvent(new Runnable() {
+            @Override
+            public void run() {
+                GLES20.glClearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
+            }
+        });
+    }
+
     public float waveMotion = 0.0f;
 
     private CameraInstance cameraInstance() {
         return CameraInstance.getInstance();
+    }
+
+    public void startRecording() {
+        mVideoRecorder = new MyRecorderWrapper();
+        mVideoRecorder.startRecording();
+    }
+
+    public void endRecording() {
+        mVideoRecorder.saveRecording();
+        mVideoRecorder = null;
     }
 
     public MyGLSurfaceView(Context context, AttributeSet attrs) {
@@ -60,6 +90,8 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
         getHolder().setFormat(PixelFormat.TRANSLUCENT);
         setRenderer(this);
         setRenderMode(RENDERMODE_WHEN_DIRTY);
+
+        clearColor = new ClearColor();
 //        setEGLConfigChooser(8, 8, 8, 8, 16, 0);
     }
 
@@ -67,7 +99,6 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
         Log.i(LOG_TAG, "onSurfaceCreated...");
 
-        GLES20.glClearColor(1.0f, 1.0f, 0.3f, 1.0f);
         GLES20.glDisable(GLES20.GL_DEPTH_TEST);
         GLES20.glDisable(GLES20.GL_STENCIL_TEST);
 
@@ -105,6 +136,8 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
     public void onSurfaceChanged(GL10 gl, int width, int height) {
         Log.i(LOG_TAG, String.format("onSurfaceChanged: %d x %d", width, height));
 
+        GLES20.glClearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
+
         viewWidth = width;
         viewHeight = height;
 
@@ -113,6 +146,8 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
         }
 
         calcViewport();
+
+        mByteFrameBuffer = ByteBuffer.allocate(640 * 480 * 4);
     }
 
     @Override
@@ -121,6 +156,14 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
         myRenderer.release();
     }
 
+    private Runnable pushFrameRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if(mVideoRecorder != null)
+                mVideoRecorder.pushFrame(mByteFrameBuffer.array());
+        }
+    };
+
     @Override
     public void onDrawFrame(GL10 gl) {
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
@@ -128,6 +171,11 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
         GLES20.glViewport(drawViewport.x, drawViewport.y, drawViewport.width, drawViewport.height);
 //        myRenderer.renderTexture(mTextureID);
         myRenderer.renderTextureExternalOES(mTextureID);
+
+        if(mVideoRecorder != null && mVideoRecorder.isRecording()) {
+            GLES20.glReadPixels(drawViewport.x, drawViewport.y, 480, 640, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, mByteFrameBuffer);
+            this.post(pushFrameRunnable);
+        }
 
         if(mSurfaceTexture != null)
             mSurfaceTexture.updateTexImage();

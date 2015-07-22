@@ -22,8 +22,11 @@ public class CameraInstance {
     private Camera mCameraDevice;
     private Camera.Parameters mParams;
 
+    public static final int DEFAULT_PREVIEW_RATE = 30;
+
+
     private boolean mIsPreviewing = false;
-    private float mPreviewrate = -1.0f;
+
 
     private int mCameraID = Camera.CameraInfo.CAMERA_FACING_BACK;
     private int mDefaultCameraID = -1;
@@ -88,7 +91,7 @@ public class CameraInstance {
                 callback.cameraReady();
             }
             Log.i(LOG_TAG, "Camera opened!");
-            initCamera(30);
+            initCamera(DEFAULT_PREVIEW_RATE);
         }
         return true;
     }
@@ -98,7 +101,6 @@ public class CameraInstance {
             mCameraDevice.setPreviewCallback(null);
             mCameraDevice.stopPreview();
             mIsPreviewing = false;
-            mPreviewrate = -1.0f;
             mCameraDevice.release();
             mCameraDevice = null;
         }
