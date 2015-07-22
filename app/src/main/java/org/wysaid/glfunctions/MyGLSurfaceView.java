@@ -12,12 +12,16 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.SurfaceHolder;
 
+import com.googlecode.javacv.cpp.opencv_core;
+
 import org.wysaid.camera.CameraInstance;
 import org.wysaid.myutils.ImageUtil;
 import org.wysaid.recorder.MyRecorderWrapper;
 
-import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
+import java.util.LinkedList;
+
+import java.util.Queue;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -38,7 +42,93 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
     private int mTextureID;
 
     private MyRecorderWrapper mVideoRecorder;
-    private ByteBuffer mByteFrameBuffer;
+
+    private static final int MAX_CACHED_FRAMES = 5;
+
+    private opencv_core.IplImage[] mIplImageCaches;
+    private LinkedList<opencv_core.IplImage> mImageList;
+
+    private boolean mShouldRecord = false;
+
+    class CachedFrame {
+        opencv_core.IplImage image;
+        long frameTimeMillis;
+        long frameNanoTime;
+
+        CachedFrame(opencv_core.IplImage img, long timeMill, long timeNano) {
+            image = img;
+            frameTimeMillis = timeMill;
+            frameNanoTime = timeNano;
+        }
+    }
+
+    private Queue<CachedFrame> mFrameQueue;
+
+    private CachedFrame makeFrame(opencv_core.IplImage img) {
+        return new CachedFrame(img, System.currentTimeMillis(), System.nanoTime());
+    }
+
+    private void pushCachedFrame(opencv_core.IplImage img) {
+        synchronized (mFrameQueue) {
+            mFrameQueue.offer(makeFrame(img));
+        }
+    }
+
+    private CachedFrame getCachedFrame() {
+        synchronized (mFrameQueue) {
+            return mFrameQueue.poll();
+        }
+    }
+
+    //回收使用过的缓存帧
+    private void recycleCachedFrame(CachedFrame frame) {
+        synchronized (mImageList) {
+            mImageList.offer(frame.image);
+        }
+    }
+
+    //获取空闲的缓存帧
+    private opencv_core.IplImage getImageCache() {
+        synchronized (mImageList) {
+            return mImageList.poll();
+        }
+    }
+
+
+    class RecordingRunnable implements Runnable {
+
+        @Override
+        public void run() {
+            while(mShouldRecord)
+            {
+                CachedFrame frame = getCachedFrame();
+
+                if(frame == null)
+                {
+                    synchronized (mRecordingRunnable) {
+                        try {
+                            this.wait();
+                        } catch (InterruptedException e) {
+                            Log.e(LOG_TAG, "Recording runnable wait() : " + e.getMessage());
+                        }
+
+                        if(!mShouldRecord) {
+                            return;
+                        }
+                    }
+                    continue;
+                }
+
+                if(mVideoRecorder != null && mVideoRecorder.isRecording()) {
+                    mVideoRecorder.writeFrame(frame.image);
+                }
+                recycleCachedFrame(frame);
+            }
+        }
+    }
+
+    RecordingRunnable mRecordingRunnable = new RecordingRunnable();
+    Thread mRecordingThread;
 
     public class Viewport {
         public int x, y;
@@ -73,13 +163,56 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
     }
 
     public void startRecording() {
+        mIplImageCaches = new opencv_core.IplImage[MAX_CACHED_FRAMES];
+        mImageList = new LinkedList<>();
+        mFrameQueue = new LinkedList<>();
+        for(int i = 0; i != MAX_CACHED_FRAMES; ++i)
+        {
+            mIplImageCaches[i] = opencv_core.IplImage.create(640, 480, opencv_core.IPL_DEPTH_8U, 4);
+            mImageList.add(mIplImageCaches[i]);
+        }
+
+        mShouldRecord = true;
         mVideoRecorder = new MyRecorderWrapper();
         mVideoRecorder.startRecording();
+        mRecordingThread = new Thread(mRecordingRunnable);
+        mRecordingThread.start();
     }
 
     public void endRecording() {
+        Log.i(LOG_TAG, "notify quit...");
+        synchronized (mRecordingRunnable)
+        {
+            mShouldRecord = false;
+            try {
+                mRecordingRunnable.notifyAll();
+            } catch (Exception e) {
+            }
+        }
+
+        Log.i(LOG_TAG, "joining thread...");
+        try {
+            mRecordingThread.join();
+        } catch (InterruptedException e) {
+            Log.e(LOG_TAG, "Join recording thread err: " + e.getMessage());
+        }
+
+        mRecordingRunnable = null;
+        mRecordingThread = null;
+
+        Log.i(LOG_TAG, "saving recoring...");
         mVideoRecorder.saveRecording();
-        mVideoRecorder = null;
+
+        for(opencv_core.IplImage img : mIplImageCaches) {
+            img.release();
+        }
+        mIplImageCaches = null;
+        mImageList.clear();
+        mImageList = null;
+        mFrameQueue.clear();
+        mFrameQueue = null;
+
+        Log.i(LOG_TAG, "recording OK");
     }
 
     public MyGLSurfaceView(Context context, AttributeSet attrs) {
@@ -146,8 +279,6 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
         }
 
         calcViewport();
-
-        mByteFrameBuffer = ByteBuffer.allocate(640 * 480 * 4);
     }
 
     @Override
@@ -155,14 +286,6 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
         super.surfaceDestroyed(holder);
         myRenderer.release();
     }
-
-    private Runnable pushFrameRunnable = new Runnable() {
-        @Override
-        public void run() {
-            if(mVideoRecorder != null)
-                mVideoRecorder.pushFrame(mByteFrameBuffer.array());
-        }
-    };
 
     @Override
     public void onDrawFrame(GL10 gl) {
@@ -172,9 +295,26 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
 //        myRenderer.renderTexture(mTextureID);
         myRenderer.renderTextureExternalOES(mTextureID);
 
-        if(mVideoRecorder != null && mVideoRecorder.isRecording()) {
-            GLES20.glReadPixels(drawViewport.x, drawViewport.y, 480, 640, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, mByteFrameBuffer);
-            this.post(pushFrameRunnable);
+        if(mShouldRecord && mVideoRecorder != null && mVideoRecorder.isRecording()) {
+            opencv_core.IplImage imgCache = getImageCache();
+            if(imgCache != null)
+            {
+                GLES20.glReadPixels(drawViewport.x, drawViewport.y, 640, 480, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, imgCache.getByteBuffer());
+                pushCachedFrame(imgCache);
+
+                synchronized (mRecordingRunnable)
+                {
+                    try {
+                        mRecordingRunnable.notifyAll();
+                    }catch (Exception e) {
+                        Log.e(LOG_TAG, "Notify failed: " + e.getMessage());
+                    }
+                }
+
+            }
+            else {
+                Log.d(LOG_TAG, "Frame loss...");
+            }
         }
 
         if(mSurfaceTexture != null)

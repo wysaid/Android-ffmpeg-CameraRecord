@@ -63,9 +63,6 @@ public class MyRecorderWrapper {
     //启动/停止 音频录制
     private boolean mRunAudioThread = true;
 
-    //缓存的 帧对象
-    private opencv_core.IplImage yuvIplImage = null;
-
     //开始录制时的时间
     private long mStartRecordingTime;
     //录制总时间
@@ -89,6 +86,9 @@ public class MyRecorderWrapper {
     //每一帧间隔时间
     private int mFrameTime;
 
+    //当前帧编号
+    private int mFrameNumber = 0;
+
     //视频时间戳
     private long mVideoTimestamp = 0L;
 
@@ -109,7 +109,6 @@ public class MyRecorderWrapper {
 
     public MyRecorderWrapper() {
         initVideoRecorder();
-        yuvIplImage = opencv_core.IplImage.create(mPreviewHeight, mPreviewWidth, opencv_core.IPL_DEPTH_8U, 4);
     }
 
     // 录制音频的线程
@@ -221,6 +220,7 @@ public class MyRecorderWrapper {
             return;
         }
 
+        mFrameNumber = 0;
         mIsRecordingStarted = true;
         mStartRecordingTime = System.currentTimeMillis();
 
@@ -237,30 +237,32 @@ public class MyRecorderWrapper {
     }
 
     //压入一帧图像数据
-    public void pushFrame(byte[] data) {
+    public void writeFrame(opencv_core.IplImage iplImage) {
         //计算时间戳
-        long frameTimeStamp;
-        if(mAudioTimestamp == 0L && mStartRecordingTime > 0L)
-            frameTimeStamp = 1000L * (System.currentTimeMillis() -mStartRecordingTime);
-        else if (mLastAudioTimestamp == mAudioTimestamp)
-            frameTimeStamp = mAudioTimestamp + mStartRecordingTime;
-        else
-        {
-            long l2 = (System.nanoTime() - mAudioTimeRecorded) / 1000L;
-            frameTimeStamp = l2 + mAudioTimestamp;
-            mLastAudioTimestamp = mAudioTimestamp;
-        }
+//        long frameTimeStamp;
+//        if(mAudioTimestamp == 0L && mStartRecordingTime > 0L)
+//            frameTimeStamp = 1000L * (System.currentTimeMillis() -mStartRecordingTime);
+//        else if (mLastAudioTimestamp == mAudioTimestamp)
+//            frameTimeStamp = mAudioTimestamp + mStartRecordingTime;
+//        else
+//        {
+//            long l2 = (System.nanoTime() - mAudioTimeRecorded) / 1000L;
+//            frameTimeStamp = l2 + mAudioTimestamp;
+//            mLastAudioTimestamp = mAudioTimestamp;
+//        }
 
-        synchronized (mVideoSyncLock) {
+        synchronized (mFrameRecorder) {
+            ++mFrameNumber;
+            Log.i(LOG_TAG, String.format("当前帧编号: %d", mFrameNumber));
+
             try {
-                yuvIplImage.getByteBuffer().put(data);
-                mFrameRecorder.setTimestamp(frameTimeStamp);
-                mFrameRecorder.record(yuvIplImage);
+//                mFrameRecorder.setTimestamp(mFrameNumber * mFrameTime * 2);
+                mFrameRecorder.setFrameNumber(mFrameNumber);
+                mFrameRecorder.record(iplImage);
             } catch (Exception e) {
                 Log.e(LOG_TAG, "录制错误: " + e.getMessage());
             }
         }
-
     }
 
     //注册录制的视频文件
@@ -305,7 +307,6 @@ public class MyRecorderWrapper {
             e.printStackTrace();
         }
 
-        yuvIplImage = null;
         mFrameRecorder = null;
 
     }
