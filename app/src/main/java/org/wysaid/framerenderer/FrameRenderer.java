@@ -3,6 +3,7 @@ package org.wysaid.framerenderer;
 import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
 
+import org.wysaid.glfunctions.Common;
 import org.wysaid.glfunctions.ProgramObject;
 
 import java.nio.FloatBuffer;
@@ -12,6 +13,8 @@ import java.nio.FloatBuffer;
  */
 public abstract class FrameRenderer {
 
+    public static final String LOG_TAG = Common.LOG_TAG;
+
     //初始化program 等
     public abstract boolean init(boolean isExternalOES);
 
@@ -20,13 +23,19 @@ public abstract class FrameRenderer {
 
     public abstract void renderTexture(int texID);
 
+    public abstract void setTextureSize(int width, int height);
+
+    public abstract String getVertexShaderString();
+
+    public abstract String getFragmentShaderString();
+
     ////////////////////////////////////////////////////////////////
 
     protected static final String REQUIRE_STRING_EXTERNAL_OES = "#extension GL_OES_EGL_image_external : require\n";
     protected static final String SAMPLER2D_VAR_EXTERNAL_OES = "samplerExternalOES";
     protected static final String SAMPLER2D_VAR = "sampler2D";
 
-    public static final String vshDrawDefault = "" +
+    protected static final String vshDrawDefault = "" +
             "attribute vec2 vPosition;\n" +
             "varying vec2 texCoord;\n" +
             "uniform mat2 rotation;" +
@@ -49,6 +58,8 @@ public abstract class FrameRenderer {
     protected ProgramObject mProgram;
 
     protected float[] mRotation;
+
+    protected int mTextureWidth, mTextureHeight;
 
     //设置界面旋转弧度,一般是 PI / 2 (也就是 90°) 的整数倍
     public void setRotation(float rad) {

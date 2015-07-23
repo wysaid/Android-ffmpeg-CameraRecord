@@ -1,6 +1,7 @@
 package org.wysaid.android_ffmpeg_camerarecord;
 
 import android.app.Activity;
+import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -8,8 +9,10 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
+import android.widget.LinearLayout;
 
 import org.wysaid.glfunctions.MyGLSurfaceView;
+import org.wysaid.glfunctions.MyGLSurfaceView.FilterButtons;
 
 
 public class MainActivity extends Activity {
@@ -24,6 +27,30 @@ public class MainActivity extends Activity {
     public static MainActivity getInstance() {
         return mCurrentInstance;
     }
+
+    public static final String FilterNames[] = {
+            "波纹",
+            "模糊",
+            "浮雕",
+            "查找边缘"
+    };
+
+    public static final FilterButtons[] FilterTypes = {
+            FilterButtons.Filter_Wave,
+            FilterButtons.Filter_Blur,
+            FilterButtons.Filter_Emboss,
+            FilterButtons.Filter_Edge
+    };
+
+    public class MyButtons extends Button {
+
+        public MyGLSurfaceView.FilterButtons filterType;
+
+        public MyButtons(Context context) {
+            super(context);
+        }
+    }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,8 +94,26 @@ public class MainActivity extends Activity {
             }
         });
 
+        LinearLayout layout = (LinearLayout) findViewById(R.id.menuLinearLayout);
+
+        for(int i = 0; i != FilterTypes.length; ++i) {
+            MyButtons button = new MyButtons(this);
+            button.filterType = FilterTypes[i];
+            button.setText(FilterNames[i]);
+            button.setOnClickListener(mFilterSwitchListener);
+            layout.addView(button);
+        }
+
         mCurrentInstance = this;
     }
+
+    private View.OnClickListener mFilterSwitchListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            MyButtons btn = (MyButtons)v;
+            mGLSurfaceView.setFrameRenderer(btn.filterType);
+        }
+    };
 
     @Override
     public void onDestroy() {

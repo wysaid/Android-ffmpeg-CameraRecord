@@ -172,7 +172,7 @@ public class CameraInstance {
 
         mParams.setPreviewSize(prevSz.width, prevSz.height);
         mParams.setPictureSize(picSz.width, picSz.height);
-        mParams.setFocusMode(mParams.FOCUS_MODE_AUTO);
+        mParams.setFocusMode(mParams.FOCUS_MODE_CONTINUOUS_VIDEO);
         mParams.setPreviewFrameRate(previewRate); //设置相机预览帧率
 
         int rotation = MainActivity.getInstance().getWindowManager().getDefaultDisplay().getRotation();

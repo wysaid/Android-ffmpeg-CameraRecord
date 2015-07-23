@@ -16,6 +16,9 @@ import com.googlecode.javacv.cpp.opencv_core;
 
 import org.wysaid.camera.CameraInstance;
 import org.wysaid.framerenderer.FrameRenderer;
+import org.wysaid.framerenderer.FrameRendererBlur;
+import org.wysaid.framerenderer.FrameRendererEdge;
+import org.wysaid.framerenderer.FrameRendererEmboss;
 import org.wysaid.framerenderer.FrameRendererWave;
 import org.wysaid.myutils.ImageUtil;
 import org.wysaid.recorder.MyRecorderWrapper;
@@ -38,7 +41,7 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
     public int viewWidth;
     public int viewHeight;
 
-    private FrameRenderer myRenderer;
+    private FrameRenderer mMyRenderer;
 
     private SurfaceTexture mSurfaceTexture;
     private int mTextureID;
@@ -159,6 +162,53 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
         });
     }
 
+    public enum FilterButtons {
+        Filter_Wave,
+        Filter_Blur,
+        Filter_Emboss,
+        Filter_Edge
+    }
+
+    public synchronized void setFrameRenderer(final FilterButtons filterID) {
+        Log.i(LOG_TAG, "setFrameRenderer to " + filterID);
+        queueEvent(new Runnable() {
+            @Override
+            public void run() {
+                FrameRenderer renderer = null;
+                boolean isExternalOES = true;
+                switch (filterID) {
+                    case Filter_Wave:
+                        renderer = FrameRendererWave.create(isExternalOES);
+                        if (renderer != null)
+                            ((FrameRendererWave) renderer).setAutoMotion(0.4f);
+                        break;
+                    case Filter_Blur:
+                        renderer = FrameRendererBlur.create(isExternalOES);
+                        if(renderer != null) {
+                            ((FrameRendererBlur) renderer).setSamplerRadius(15.0f);
+                        }
+                        break;
+                    case Filter_Edge:
+                        renderer = FrameRendererEdge.create(isExternalOES);
+                        break;
+                    case Filter_Emboss:
+                        renderer = FrameRendererEmboss.create(isExternalOES);
+                        break;
+                    default:
+                        break;
+                }
+
+                if (renderer != null) {
+                    mMyRenderer.release();
+                    mMyRenderer = renderer;
+                    mMyRenderer.setTextureSize(cameraInstance().previewHeight(), cameraInstance().previewWidth());
+                    mMyRenderer.setRotation((float) Math.PI / 2.0f);
+                }
+            }
+        });
+
+    }
+
     private CameraInstance cameraInstance() {
         return CameraInstance.getInstance();
     }
@@ -251,7 +301,7 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
         if(!rendererWave.init(true)) {
             Log.e(LOG_TAG, "init filter failed!\n");
         }
-        myRenderer = rendererWave;
+        mMyRenderer = rendererWave;
 
         rendererWave.setRotation((float) Math.PI / 2.0f);
         rendererWave.setAutoMotion(0.4f);
@@ -298,7 +348,7 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
         super.surfaceDestroyed(holder);
-        myRenderer.release();
+        mMyRenderer.release();
     }
 
     @Override
@@ -306,7 +356,7 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
 
         GLES20.glViewport(drawViewport.x, drawViewport.y, drawViewport.width, drawViewport.height);
-        myRenderer.renderTexture(mTextureID);
+        mMyRenderer.renderTexture(mTextureID);
 
         synchronized (mRecordStateLock) {
 

@@ -26,9 +26,18 @@ public class FrameRendererDrawOrigin extends FrameRenderer{
             defaultInitialize();
     }
 
+    public static FrameRendererDrawOrigin create(boolean isExternalOES) {
+        FrameRendererDrawOrigin renderer = new FrameRendererDrawOrigin();
+        if(!renderer.init(isExternalOES)) {
+            renderer.release();
+            return null;
+        }
+        return renderer;
+    }
+
     @Override
     public boolean init(boolean isExternalOES) {
-        return setProgramDefualt(vshDrawDefault, fshDrawOrigin, isExternalOES);
+        return setProgramDefualt(getVertexShaderString(), getFragmentShaderString(), isExternalOES);
     }
 
     @Override
@@ -51,5 +60,21 @@ public class FrameRendererDrawOrigin extends FrameRenderer{
 
         mProgram.bind();
         GLES20.glDrawArrays(DRAW_FUNCTION, 0, 4);
+    }
+
+    @Override
+    public void setTextureSize(int w, int h) {
+        mTextureWidth = w;
+        mTextureHeight = h;
+    }
+
+    @Override
+    public String getVertexShaderString() {
+        return vshDrawDefault;
+    }
+
+    @Override
+    public String getFragmentShaderString() {
+        return fshDrawOrigin;
     }
 }

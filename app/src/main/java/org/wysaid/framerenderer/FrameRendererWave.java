@@ -31,6 +31,15 @@ public class FrameRendererWave extends FrameRendererDrawOrigin {
     public FrameRendererWave() {
     }
 
+    public static FrameRendererWave create(boolean isExternalOES) {
+        FrameRendererWave renderer = new FrameRendererWave();
+        if(!renderer.init(isExternalOES)) {
+            renderer.release();
+            return null;
+        }
+        return renderer;
+    }
+
     @Override
     public boolean init(boolean isExternalOES) {
         if(setProgramDefualt(vshDrawDefault, fshWave, isExternalOES)) {
@@ -51,6 +60,7 @@ public class FrameRendererWave extends FrameRendererDrawOrigin {
         mAutoMotion = (speed != 0.0f);
     }
 
+    @Override
     public void renderTexture(int texID) {
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
         GLES20.glBindTexture(TEXTURE_2D_BINDABLE, texID);

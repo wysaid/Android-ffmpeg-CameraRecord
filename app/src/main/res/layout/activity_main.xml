@@ -19,24 +19,54 @@
             android:layout_height="match_parent" />
     </FrameLayout>
 
-    <LinearLayout
+    <HorizontalScrollView
         android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:layout_alignParentBottom="true"
-        >
-        <Button
-            android:layout_width="100dp"
-            android:layout_height="match_parent"
-            android:id="@+id/takeShotBtn"
-            android:text="拍照"
-            />
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_alignParentBottom="true"
+            android:id="@+id/menuLinearLayout">
 
-        <Button
-            android:layout_width="100dp"
-            android:layout_height="match_parent"
-            android:id="@+id/recordBtn"
-            android:text="点按录像"
-             />
-    </LinearLayout>
+            <Button
+                android:layout_width="100dp"
+                android:layout_height="match_parent"
+                android:id="@+id/takeShotBtn"
+                android:text="拍照"/>
+
+            <Button
+                android:layout_width="100dp"
+                android:layout_height="match_parent"
+                android:id="@+id/recordBtn"
+                android:text="点按录像"/>
+
+            <!--<Button-->
+                <!--android:layout_width="100dp"-->
+                <!--android:layout_height="match_parent"-->
+                <!--android:id="@+id/filterWaveBtn"-->
+                <!--android:text="波纹"/>-->
+
+            <!--<Button-->
+                <!--android:layout_width="100dp"-->
+                <!--android:layout_height="match_parent"-->
+                <!--android:id="@+id/filterBlurBtn"-->
+                <!--android:text="模糊"/>-->
+
+            <!--<Button-->
+                <!--android:layout_width="100dp"-->
+                <!--android:layout_height="match_parent"-->
+                <!--android:id="@+id/filterEmbossBtnn"-->
+                <!--android:text="浮雕"-->
+                <!--/>-->
+
+            <!--<Button-->
+                <!--android:layout_width="100dp"-->
+                <!--android:layout_height="match_parent"-->
+                <!--android:id="@+id/filterEdgeBtn"-->
+                <!--android:text="查找边缘"/>-->
+
+        </LinearLayout>
+    </HorizontalScrollView>
 
 </RelativeLayout>
