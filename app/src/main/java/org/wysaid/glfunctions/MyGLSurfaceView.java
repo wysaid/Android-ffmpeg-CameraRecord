@@ -323,8 +323,8 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
 //        Log.i(LOG_TAG, "onDrawFrame...");
 
         waveMotion += 0.4f;
-        if(waveMotion > 1e3f) {
-            waveMotion -= 1e3f;
+        if(waveMotion > Math.PI * 2.0f) {
+            waveMotion -= Math.PI * 2.0f;
         }
         myRenderer.setWaveMotion(waveMotion);
     }
