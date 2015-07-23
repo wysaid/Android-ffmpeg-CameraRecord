@@ -130,13 +130,13 @@ public class MyRecorderWrapper {
         //shortBuffer 包含音频的数据和起始位置
         private void record(ShortBuffer shortBuffer) {
             try {
-                synchronized (mAudioSyncLock) {
+//                synchronized (mAudioSyncLock) {
                     if(mFrameRecorder != null) {
                         count += shortBuffer.limit();
 //                        mFrameRecorder.record(0, shortBuffer);
                         //TODO 读写分离 - 待优化
                         mFrameRecorder.record(0, new Buffer[]{shortBuffer});
-                    }
+//                    }
                 }
             }catch (Exception e) {
                 Log.e(LOG_TAG, "record audio error...");
@@ -285,6 +285,12 @@ public class MyRecorderWrapper {
         mIsRecordingStarted = false;
         if(mIsRecordingStarted) {
             mRunAudioThread = false;
+            try {
+                mAudioThread.join(1000L);
+            } catch (InterruptedException e) {
+                Log.e(LOG_TAG, "join audio thread failed...");
+            }
+            mAudioThread = null;
             if(!mIsRecordingSaved) {
                 mIsRecordingSaved = true;
                 registerVideo();
@@ -298,6 +304,7 @@ public class MyRecorderWrapper {
 
     private void releaseRes() {
         mIsRecordingSaved = true;
+
         try {
             if(mFrameRecorder != null) {
                 mFrameRecorder.stop();

@@ -60,6 +60,7 @@ public class MainActivity extends Activity {
                         Log.i(LOG_TAG, "End recording...");
                         mGLSurfaceView.setClearColor(0.0f, 0.0f, 0.0f, 1.0f);
                         mGLSurfaceView.endRecording();
+                        Log.i(LOG_TAG, "End recording OK");
                         break;
                 }
                 return true;

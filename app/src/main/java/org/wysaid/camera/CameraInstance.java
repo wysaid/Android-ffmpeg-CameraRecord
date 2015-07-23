@@ -5,7 +5,9 @@ import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.os.Build;
 import android.util.Log;
+import android.view.Surface;
 
+import org.wysaid.android_ffmpeg_camerarecord.MainActivity;
 import org.wysaid.glfunctions.Common;
 
 import java.io.IOException;
@@ -170,8 +172,12 @@ public class CameraInstance {
 
         mParams.setPreviewSize(prevSz.width, prevSz.height);
         mParams.setPictureSize(picSz.width, picSz.height);
-        mParams.setFocusMode(mParams.FOCUS_MODE_CONTINUOUS_VIDEO);
+        mParams.setFocusMode(mParams.FOCUS_MODE_AUTO);
         mParams.setPreviewFrameRate(previewRate); //设置相机预览帧率
+
+        int rotation = MainActivity.getInstance().getWindowManager().getDefaultDisplay().getRotation();
+
+        Log.i(LOG_TAG, "Window Rotation: " + rotation);
 
         mCameraDevice.setParameters(mParams);
 //      mCameraDevice.setDisplayOrientation(270);
