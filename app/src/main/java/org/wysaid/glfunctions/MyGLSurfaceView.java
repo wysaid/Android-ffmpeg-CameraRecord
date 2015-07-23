@@ -130,7 +130,7 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
         }
     }
 
-    RecordingRunnable mRecordingRunnable = new RecordingRunnable();
+    RecordingRunnable mRecordingRunnable;
     Thread mRecordingThread;
 
     public class Viewport {
@@ -169,15 +169,16 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
         mFrameQueue = new LinkedList<>();
         mVideoRecorder = new MyRecorderWrapper();
         mVideoRecorder.startRecording();
+        mRecordingRunnable = new RecordingRunnable();
         mRecordingThread = new Thread(mRecordingRunnable);
         mRecordingThread.start();
 
-        synchronized (mRecordStateLock) {
-            mShouldRecord = true;
-        }
-
         for(opencv_core.IplImage img :  mIplImageCaches) {
             mImageList.add(img);
+        }
+
+        synchronized (mRecordStateLock) {
+            mShouldRecord = true;
         }
     }
 
@@ -309,27 +310,22 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
 
         synchronized (mRecordStateLock) {
 
-            Log.i(LOG_TAG, "xxx");
             if (mShouldRecord && mVideoRecorder != null && mVideoRecorder.isRecording()) {
-                Log.i(LOG_TAG, "222");
                 opencv_core.IplImage imgCache = getImageCache();
                 if (imgCache != null) {
-                    Log.i(LOG_TAG, "333");
                     GLES20.glReadPixels(drawViewport.x, drawViewport.y, 640, 480, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, imgCache.getByteBuffer());
                     pushCachedFrame(imgCache);
-                    Log.i(LOG_TAG, "444");
 
-                    synchronized (mRecordingRunnable) {
-                        Log.i(LOG_TAG, "aaa");
-                        try {
-                            Log.i(LOG_TAG, "555");
-                            mRecordingRunnable.notifyAll();
-                        } catch (Exception e) {
-                            Log.e(LOG_TAG, "Notify failed: " + e.getMessage());
+                    if(mRecordingRunnable != null) {
+                        synchronized (mRecordingRunnable) {
+                            try {
+                                mRecordingRunnable.notifyAll();
+                            } catch (Exception e) {
+                                Log.e(LOG_TAG, "Notify failed: " + e.getMessage());
+                            }
                         }
                     }
 
-                    Log.i(LOG_TAG, "666");
                 } else {
                     Log.d(LOG_TAG, "Frame loss...");
                 }
