@@ -185,7 +185,7 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
             queueEvent(new Runnable() {
                 @Override
                 public void run() {
-                    r.setIntensity(value / 3);
+                    r.setIntensity((int)(value / 100.0f * 16.0f));
                 }
             });
         }
