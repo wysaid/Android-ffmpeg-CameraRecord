@@ -13,7 +13,7 @@ public class FrameRendererBlur extends FrameRendererDrawOrigin {
 
     private static final String vshBlur = vshDrawDefault;
 
-    protected static final String vshBlurCache = "" +
+    private static final String vshBlurCache = "" +
             "attribute vec2 vPosition;\n" +
             "varying vec2 texCoord;\n" +
             "void main()\n" +
@@ -28,8 +28,8 @@ public class FrameRendererBlur extends FrameRendererDrawOrigin {
             "uniform %s inputImageTexture;\n" +
             "uniform vec2 samplerSteps;\n" +
 
-            "const int samplerRadius = 4;\n" +
-            "const float samplerRadiusFloat = 4.0;\n" +
+            "const int samplerRadius = 5;\n" +
+            "const float samplerRadiusFloat = 5.0;\n" +
 
             "float random(vec2 seed)\n" +
             "{\n" +

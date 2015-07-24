@@ -19,6 +19,7 @@ import org.wysaid.framerenderer.FrameRenderer;
 import org.wysaid.framerenderer.FrameRendererBlur;
 import org.wysaid.framerenderer.FrameRendererEdge;
 import org.wysaid.framerenderer.FrameRendererEmboss;
+import org.wysaid.framerenderer.FrameRendererLerpBlur;
 import org.wysaid.framerenderer.FrameRendererWave;
 import org.wysaid.myutils.ImageUtil;
 import org.wysaid.recorder.MyRecorderWrapper;
@@ -161,10 +162,11 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
         Filter_Wave,
         Filter_Blur,
         Filter_Emboss,
-        Filter_Edge
+        Filter_Edge,
+        Filter_BlurLerp,
     }
 
-    public synchronized void setIntensity(final float value) {
+    public synchronized void setIntensity(final int value) {
         if(mMyRenderer == null)
             return ;
 
@@ -175,6 +177,15 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
                 @Override
                 public void run() {
                     r.setSamplerRadius(value);
+                }
+            });
+        }
+        else if(mMyRenderer instanceof FrameRendererLerpBlur) {
+            final FrameRendererLerpBlur r = (FrameRendererLerpBlur)mMyRenderer;
+            queueEvent(new Runnable() {
+                @Override
+                public void run() {
+                    r.setIntensity(value / 3);
                 }
             });
         }
@@ -205,6 +216,12 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
                     case Filter_Emboss:
                         renderer = FrameRendererEmboss.create(isExternalOES);
                         break;
+                    case Filter_BlurLerp:
+                        renderer = FrameRendererLerpBlur.create(isExternalOES);
+                        if(renderer != null) {
+                            ((FrameRendererLerpBlur) renderer).setIntensity(3);
+                        }
+                        break;
                     default:
                         break;
                 }
@@ -215,6 +232,8 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
                     mMyRenderer.setTextureSize(cameraInstance().previewHeight(), cameraInstance().previewWidth());
                     mMyRenderer.setRotation((float) Math.PI / 2.0f);
                 }
+
+                GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
 
                 Common.checkGLError("setFrameRenderer...");
             }

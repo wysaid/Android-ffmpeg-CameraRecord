@@ -32,16 +32,18 @@ public class MainActivity extends Activity {
 
     public static final String FilterNames[] = {
             "波纹",
-            "模糊",
+            "普通模糊",
             "浮雕",
-            "查找边缘"
+            "查找边缘",
+            "LerpBlur"
     };
 
     public static final FilterButtons[] FilterTypes = {
             FilterButtons.Filter_Wave,
             FilterButtons.Filter_Blur,
             FilterButtons.Filter_Emboss,
-            FilterButtons.Filter_Edge
+            FilterButtons.Filter_Edge,
+            FilterButtons.Filter_BlurLerp
     };
 
     public class MyButtons extends Button {

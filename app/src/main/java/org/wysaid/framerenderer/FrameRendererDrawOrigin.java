@@ -13,7 +13,7 @@ public class FrameRendererDrawOrigin extends FrameRenderer{
             "uniform %s inputImageTexture;\n" +
             "void main()\n" +
             "{\n" +
-            "   gl_FragColor = vec4(texCoord, 0.0, 1.0);//texture2D(inputImageTexture, texCoord);\n" +
+            "   gl_FragColor = texture2D(inputImageTexture, texCoord);\n" +
             "}";
 
     //初始化默认的顶点序列等。
