@@ -10,6 +10,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.SeekBar;
 
 import org.wysaid.glfunctions.MyGLSurfaceView;
 import org.wysaid.glfunctions.MyGLSurfaceView.FilterButtons;
@@ -20,6 +21,7 @@ public class MainActivity extends Activity {
     private Button mTakePicBtn;
     private Button mRecordBtn;
     private MyGLSurfaceView mGLSurfaceView;
+    private SeekBar mSeekBar;
 
     public final static String LOG_TAG = MyGLSurfaceView.LOG_TAG;
 
@@ -60,6 +62,7 @@ public class MainActivity extends Activity {
         mTakePicBtn = (Button)findViewById(R.id.takeShotBtn);
         mRecordBtn = (Button)findViewById(R.id.recordBtn);
         mGLSurfaceView = (MyGLSurfaceView)findViewById(R.id.myGLSurfaceView);
+        mSeekBar = (SeekBar)findViewById(R.id.seekBar);
 
         mTakePicBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -103,6 +106,23 @@ public class MainActivity extends Activity {
             button.setOnClickListener(mFilterSwitchListener);
             layout.addView(button);
         }
+
+        mSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                @Override
+                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                    mGLSurfaceView.setIntensity(progress);
+                }
+
+                @Override
+                public void onStartTrackingTouch(SeekBar seekBar) {
+
+                }
+
+                @Override
+                public void onStopTrackingTouch(SeekBar seekBar) {
+
+                }
+            });
 
         mCurrentInstance = this;
     }

@@ -19,6 +19,11 @@
             android:layout_height="match_parent" />
     </FrameLayout>
 
+    <SeekBar
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:id="@+id/seekBar"/>
+
     <HorizontalScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -40,31 +45,6 @@
                 android:layout_height="match_parent"
                 android:id="@+id/recordBtn"
                 android:text="点按录像"/>
-
-            <!--<Button-->
-                <!--android:layout_width="100dp"-->
-                <!--android:layout_height="match_parent"-->
-                <!--android:id="@+id/filterWaveBtn"-->
-                <!--android:text="波纹"/>-->
-
-            <!--<Button-->
-                <!--android:layout_width="100dp"-->
-                <!--android:layout_height="match_parent"-->
-                <!--android:id="@+id/filterBlurBtn"-->
-                <!--android:text="模糊"/>-->
-
-            <!--<Button-->
-                <!--android:layout_width="100dp"-->
-                <!--android:layout_height="match_parent"-->
-                <!--android:id="@+id/filterEmbossBtnn"-->
-                <!--android:text="浮雕"-->
-                <!--/>-->
-
-            <!--<Button-->
-                <!--android:layout_width="100dp"-->
-                <!--android:layout_height="match_parent"-->
-                <!--android:id="@+id/filterEdgeBtn"-->
-                <!--android:text="查找边缘"/>-->
 
         </LinearLayout>
     </HorizontalScrollView>

@@ -1,6 +1,7 @@
 package org.wysaid.glfunctions;
 
 import android.opengl.GLES20;
+import android.util.Log;
 
 /**
  * Created by wangyang on 15/7/23.
@@ -26,6 +27,10 @@ public class FrameBufferObject {
     public void bindTexture(int texID) {
         bind();
         GLES20.glFramebufferTexture2D(GLES20.GL_FRAMEBUFFER, GLES20.GL_COLOR_ATTACHMENT0, GLES20.GL_TEXTURE_2D, texID, 0);
+        if(GLES20.glCheckFramebufferStatus(GLES20.GL_FRAMEBUFFER) != GLES20.GL_FRAMEBUFFER_COMPLETE)
+        {
+            Log.e(Common.LOG_TAG, "CGE::FrameBuffer::bindTexture2D - Frame buffer is not valid!");
+        }
     }
 
 }

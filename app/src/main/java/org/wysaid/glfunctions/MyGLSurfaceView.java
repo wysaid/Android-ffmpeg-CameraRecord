@@ -136,12 +136,7 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
     RecordingRunnable mRecordingRunnable;
     Thread mRecordingThread;
 
-    public class Viewport {
-        public int x, y;
-        public int width, height;
-    }
-
-    public Viewport drawViewport;
+    public FrameRenderer.Viewport drawViewport;
 
     public class ClearColor {
         public float r, g, b, a;
@@ -169,6 +164,22 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
         Filter_Edge
     }
 
+    public synchronized void setIntensity(final float value) {
+        if(mMyRenderer == null)
+            return ;
+
+        if(mMyRenderer instanceof FrameRendererBlur) {
+            final FrameRendererBlur r = (FrameRendererBlur)mMyRenderer;
+
+            queueEvent(new Runnable() {
+                @Override
+                public void run() {
+                    r.setSamplerRadius(value);
+                }
+            });
+        }
+    }
+
     public synchronized void setFrameRenderer(final FilterButtons filterID) {
         Log.i(LOG_TAG, "setFrameRenderer to " + filterID);
         queueEvent(new Runnable() {
@@ -185,7 +196,7 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
                     case Filter_Blur:
                         renderer = FrameRendererBlur.create(isExternalOES);
                         if(renderer != null) {
-                            ((FrameRendererBlur) renderer).setSamplerRadius(15.0f);
+                            ((FrameRendererBlur) renderer).setSamplerRadius(50.0f);
                         }
                         break;
                     case Filter_Edge:
@@ -204,6 +215,8 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
                     mMyRenderer.setTextureSize(cameraInstance().previewHeight(), cameraInstance().previewWidth());
                     mMyRenderer.setRotation((float) Math.PI / 2.0f);
                 }
+
+                Common.checkGLError("setFrameRenderer...");
             }
         });
 
@@ -320,7 +333,7 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
         float camHeight = (float)cameraInstance().previewWidth();
         float camWidth = (float)cameraInstance().previewHeight();
 
-        drawViewport = new Viewport();
+        drawViewport = new FrameRenderer.Viewport();
 
         float scale = Math.min(viewWidth / camWidth, viewHeight / camHeight);
         drawViewport.width = (int)(camWidth * scale);
@@ -355,8 +368,8 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
     public void onDrawFrame(GL10 gl) {
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
 
-        GLES20.glViewport(drawViewport.x, drawViewport.y, drawViewport.width, drawViewport.height);
-        mMyRenderer.renderTexture(mTextureID);
+//        GLES20.glViewport(drawViewport.x, drawViewport.y, drawViewport.width, drawViewport.height);
+        mMyRenderer.renderTexture(mTextureID, drawViewport);
 
         synchronized (mRecordStateLock) {
 

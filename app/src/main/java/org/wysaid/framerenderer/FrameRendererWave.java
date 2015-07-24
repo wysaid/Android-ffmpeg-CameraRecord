@@ -61,7 +61,12 @@ public class FrameRendererWave extends FrameRendererDrawOrigin {
     }
 
     @Override
-    public void renderTexture(int texID) {
+    public void renderTexture(int texID, Viewport viewport) {
+
+        if(viewport != null) {
+            GLES20.glViewport(viewport.x, viewport.y, viewport.width, viewport.height);
+        }
+
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
         GLES20.glBindTexture(TEXTURE_2D_BINDABLE, texID);
 

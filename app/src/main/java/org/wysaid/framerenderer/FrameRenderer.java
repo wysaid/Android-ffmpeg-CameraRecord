@@ -21,13 +21,25 @@ public abstract class FrameRenderer {
     //为了保证GLContext 的对应， 不能等待finalize
     public abstract void release();
 
-    public abstract void renderTexture(int texID);
+    public abstract void renderTexture(int texID, Viewport viewport);
 
     public abstract void setTextureSize(int width, int height);
 
     public abstract String getVertexShaderString();
 
     public abstract String getFragmentShaderString();
+
+    public static class Viewport {
+        public int x, y;
+        public int width, height;
+        public Viewport() {}
+        public Viewport(int _x, int _y, int _width, int _height) {
+            x = _x;
+            y = _y;
+            width = _width;
+            height = _height;
+        }
+    }
 
     ////////////////////////////////////////////////////////////////
 
