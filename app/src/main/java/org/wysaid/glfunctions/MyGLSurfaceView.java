@@ -247,6 +247,9 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
 
     public synchronized void startRecording() {
 
+        if(mShouldRecord) {
+            endRecording();
+        }
         mImageList = new LinkedList<>();
         mFrameQueue = new LinkedList<>();
         mVideoRecorder = new MyRecorderWrapper();
@@ -304,9 +307,10 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
 
         setEGLContextClientVersion(2);
         setEGLConfigChooser(8, 8, 8, 8, 8, 0);
-        getHolder().setFormat(PixelFormat.RGBA_8888);
+        getHolder().setFormat(PixelFormat.TRANSLUCENT);
         setRenderer(this);
         setRenderMode(RENDERMODE_WHEN_DIRTY);
+        setZOrderOnTop(true);
 
         clearColor = new ClearColor();
 
@@ -382,6 +386,10 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
         super.surfaceDestroyed(holder);
         mMyRenderer.release();
     }
+
+    private long mTimeCount = 0;
+    private long mFramesCount = 0;
+    private long mLastTimestamp = 0;
 
     @Override
     public void onDrawFrame(GL10 gl) {
@@ -460,6 +468,22 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
     @Override
     public void onFrameAvailable(SurfaceTexture surfaceTexture) {
 //        Log.i(LOG_TAG, "onFrameAvailable...");
+        if(mLastTimestamp == 0)
+            mLastTimestamp = mSurfaceTexture.getTimestamp();
+
+        long currentTimestamp = mSurfaceTexture.getTimestamp();
+
+        ++mFramesCount;
+        mTimeCount += currentTimestamp - mLastTimestamp;
+        mLastTimestamp = currentTimestamp;
+        if(mTimeCount >= 1e9)
+        {
+            Log.i(LOG_TAG, String.format("TimeCount: %d, Fps: %d", mTimeCount, mFramesCount));
+            mTimeCount -= 1e9;
+            mFramesCount = 0;
+        }
+
+//        Log.i(LOG_TAG, String.format("timestamp: %d", mSurfaceTexture.getTimestamp()));
         requestRender();
     }
 

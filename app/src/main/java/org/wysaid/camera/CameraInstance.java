@@ -24,7 +24,7 @@ public class CameraInstance {
     private Camera mCameraDevice;
     private Camera.Parameters mParams;
 
-    public static final int DEFAULT_PREVIEW_RATE = 30;
+    public static final int DEFAULT_PREVIEW_RATE = 24;
 
 
     private boolean mIsPreviewing = false;

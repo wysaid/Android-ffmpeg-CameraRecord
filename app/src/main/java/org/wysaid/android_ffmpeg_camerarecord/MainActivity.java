@@ -85,12 +85,12 @@ public class MainActivity extends Activity {
                 switch (event.getAction()) {
                     case MotionEvent.ACTION_DOWN:
                         Log.i(LOG_TAG, "Start recording...");
-                        mGLSurfaceView.setClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+                        mGLSurfaceView.setClearColor(1.0f, 0.0f, 0.0f, 0.6f);
                         mGLSurfaceView.startRecording();
                         break;
                     case MotionEvent.ACTION_UP:
                         Log.i(LOG_TAG, "End recording...");
-                        mGLSurfaceView.setClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+                        mGLSurfaceView.setClearColor(0.0f, 0.0f, 0.0f, 0.0f);
                         mGLSurfaceView.endRecording();
                         Log.i(LOG_TAG, "End recording OK");
                         break;
