@@ -7,3 +7,5 @@
 /captures
 .idea/
 .svn/
+*iml
+.idea/
