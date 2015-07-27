@@ -303,7 +303,8 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
         Log.i(LOG_TAG, "MyGLSurfaceView Construct...");
 
         setEGLContextClientVersion(2);
-        getHolder().setFormat(PixelFormat.TRANSLUCENT);
+        setEGLConfigChooser(8, 8, 8, 8, 8, 0);
+        getHolder().setFormat(PixelFormat.RGBA_8888);
         setRenderer(this);
         setRenderMode(RENDERMODE_WHEN_DIRTY);
 
@@ -315,7 +316,6 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
         {
             mIplImageCaches[i] = opencv_core.IplImage.create(640, 480, opencv_core.IPL_DEPTH_8U, 4);
         }
-//        setEGLConfigChooser(8, 8, 8, 8, 16, 0);
     }
 
     @Override
