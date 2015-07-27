@@ -4,4 +4,5 @@
 
 ## 截屏 ##
 
-<img src="https://raw.githubusercontent.com/wysaid/Android-ffmpeg-CameraRecord/master/screenshot/screenshot0.jpg" alt="wysaid"><img src="https://raw.githubusercontent.com/wysaid/Android-ffmpeg-CameraRecord/master/screenshot/screenshot1.jpg" alt="wysaid">
+<img src="https://raw.githubusercontent.com/wysaid/Android-ffmpeg-CameraRecord/master/screenshot/screenshot1.jpg" alt="wysaid">
+<img src="https://raw.githubusercontent.com/wysaid/Android-ffmpeg-CameraRecord/master/screenshot/screenshot0.jpg" alt="wysaid">
