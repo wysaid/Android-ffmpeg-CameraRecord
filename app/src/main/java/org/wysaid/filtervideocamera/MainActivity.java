@@ -1,7 +1,7 @@
 package org.wysaid.filtervideocamera;
 
+import android.app.Activity;
 import android.content.Context;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -12,18 +12,18 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
 
-import org.wysaid.myUtils.Common;
 import org.wysaid.view.FilterGLSurfaceView;
+import org.wysaid.view.FilterGLSurfaceView.FilterButtons;
 
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends Activity {
 
     private Button mTakePicBtn;
     private Button mRecordBtn;
     private FilterGLSurfaceView mGLSurfaceView;
     private SeekBar mSeekBar;
 
-    public final static String LOG_TAG = Common.LOG_TAG;
+    public final static String LOG_TAG = FilterGLSurfaceView.LOG_TAG;
 
     public static MainActivity mCurrentInstance = null;
     public static MainActivity getInstance() {
@@ -38,31 +38,23 @@ public class MainActivity extends ActionBarActivity {
             "LerpBlur"
     };
 
-    public static final FilterGLSurfaceView.FilterButtons[] FilterTypes = {
-            FilterGLSurfaceView.FilterButtons.Filter_Wave,
-            FilterGLSurfaceView.FilterButtons.Filter_Blur,
-            FilterGLSurfaceView.FilterButtons.Filter_Emboss,
-            FilterGLSurfaceView.FilterButtons.Filter_Edge,
-            FilterGLSurfaceView.FilterButtons.Filter_BlurLerp
-    };
-
-    private View.OnClickListener mFilterSwitchListener = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            MyButtons btn = (MyButtons)v;
-            mGLSurfaceView.setFrameRenderer(btn.filterType);
-        }
+    public static final FilterButtons[] FilterTypes = {
+            FilterButtons.Filter_Wave,
+            FilterButtons.Filter_Blur,
+            FilterButtons.Filter_Emboss,
+            FilterButtons.Filter_Edge,
+            FilterButtons.Filter_BlurLerp
     };
 
     public class MyButtons extends Button {
 
-        public FilterGLSurfaceView.FilterButtons filterType;
+        public FilterButtons filterType;
 
         public MyButtons(Context context) {
             super(context);
-            setOnClickListener(mFilterSwitchListener);
         }
     }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,15 +85,11 @@ public class MainActivity extends ActionBarActivity {
                 switch (event.getAction()) {
                     case MotionEvent.ACTION_DOWN:
                         Log.i(LOG_TAG, "Start recording...");
-                        if(mGLSurfaceView.isRecording())
-                            break;
                         mGLSurfaceView.setClearColor(1.0f, 0.0f, 0.0f, 0.6f);
                         mGLSurfaceView.startRecording(null);
                         break;
                     case MotionEvent.ACTION_UP:
                         Log.i(LOG_TAG, "End recording...");
-                        if(!mGLSurfaceView.isRecording())
-                            break;
                         mGLSurfaceView.setClearColor(0.0f, 0.0f, 0.0f, 0.0f);
                         mGLSurfaceView.endRecording();
                         Log.i(LOG_TAG, "End recording OK");
@@ -117,28 +105,37 @@ public class MainActivity extends ActionBarActivity {
             MyButtons button = new MyButtons(this);
             button.filterType = FilterTypes[i];
             button.setText(FilterNames[i]);
+            button.setOnClickListener(mFilterSwitchListener);
             layout.addView(button);
         }
 
         mSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                mGLSurfaceView.setIntensity(progress);
-            }
+                @Override
+                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                    mGLSurfaceView.setIntensity(progress);
+                }
 
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
+                @Override
+                public void onStartTrackingTouch(SeekBar seekBar) {
 
-            }
+                }
 
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
+                @Override
+                public void onStopTrackingTouch(SeekBar seekBar) {
 
-            }
-        });
+                }
+            });
 
         mCurrentInstance = this;
     }
+
+    private View.OnClickListener mFilterSwitchListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            MyButtons btn = (MyButtons)v;
+            mGLSurfaceView.setFrameRenderer(btn.filterType);
+        }
+    };
 
     @Override
     public void onDestroy() {
