@@ -260,9 +260,9 @@ public class FilterGLSurfaceView extends GLSurfaceView implements GLSurfaceView.
         mImageList = new LinkedList<>();
         mFrameQueue = new LinkedList<>();
         if(filePath == null || filePath.isEmpty())
-            mVideoRecorder = new MyRecorderWrapper(filePath);
-        else
             mVideoRecorder = new MyRecorderWrapper(mContext);
+        else
+            mVideoRecorder = new MyRecorderWrapper(filePath);
 
         mVideoRecorder.startRecording();
         mRecordingRunnable = new RecordingRunnable();
