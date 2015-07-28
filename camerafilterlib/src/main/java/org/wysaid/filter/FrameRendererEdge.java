@@ -1,4 +1,4 @@
-package org.wysaid.framerenderer;
+package org.wysaid.filter;
 
 /**
  * Created by wangyang on 15/7/23.

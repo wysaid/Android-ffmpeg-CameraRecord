@@ -1,10 +1,10 @@
-package org.wysaid.framerenderer;
+package org.wysaid.filter;
 
 import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
 
-import org.wysaid.glfunctions.Common;
-import org.wysaid.glfunctions.ProgramObject;
+import org.wysaid.myUtils.Common;
+import org.wysaid.myUtils.ProgramObject;
 
 import java.nio.FloatBuffer;
 

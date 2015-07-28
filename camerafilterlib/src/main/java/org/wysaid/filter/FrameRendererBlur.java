@@ -1,10 +1,10 @@
-package org.wysaid.framerenderer;
+package org.wysaid.filter;
 
 import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
 import android.util.Log;
-import org.wysaid.glfunctions.FrameBufferObject;
-import org.wysaid.glfunctions.ProgramObject;
+import org.wysaid.myUtils.FrameBufferObject;
+import org.wysaid.myUtils.ProgramObject;
 
 /**
  * Created by wangyang on 15/7/23.

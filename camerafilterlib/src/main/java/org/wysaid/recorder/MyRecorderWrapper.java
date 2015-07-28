@@ -1,27 +1,28 @@
 package org.wysaid.recorder;
 
+import android.content.Context;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
 import android.net.Uri;
-import android.os.*;
-import android.os.Process;
+
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
 
 import com.googlecode.javacv.cpp.opencv_core;
 
-import org.wysaid.android_ffmpeg_camerarecord.MainActivity;
 import org.wysaid.camera.CameraInstance;
-import org.wysaid.glfunctions.Common;
-import org.wysaid.myutils.VideoUtil;
+import org.wysaid.myUtils.Common;
 
 import java.io.File;
 import java.nio.Buffer;
 import java.nio.ShortBuffer;
 
+import static com.googlecode.javacv.cpp.avutil.AV_PIX_FMT_RGBA;
+
 /**
- * Created by wangyang on 15/7/21.
+ * Created by wangyang on 15/7/27.
  */
 
 public class MyRecorderWrapper {
@@ -58,7 +59,7 @@ public class MyRecorderWrapper {
 
     //录制音频的线程
     private Thread mAudioThread;
-    private AudioRecordingRunnable mAudiorRecordRunnable;
+    private AudioRecordingRunnable mAudioRecordRunnable;
 
     //启动/停止 音频录制
     private boolean mRunAudioThread = true;
@@ -107,8 +108,12 @@ public class MyRecorderWrapper {
         return mIsRecordingStarted;
     }
 
-    public MyRecorderWrapper() {
-        initVideoRecorder();
+    public MyRecorderWrapper(Context context) {
+        initVideoRecorder(context);
+    }
+
+    public MyRecorderWrapper(String filePath) {
+        initVideoRecorder(filePath);
     }
 
     // 录制音频的线程
@@ -131,11 +136,11 @@ public class MyRecorderWrapper {
         private void record(ShortBuffer shortBuffer) {
             try {
 //                synchronized (mAudioSyncLock) {
-                    if(mFrameRecorder != null) {
-                        count += shortBuffer.limit();
+                if(mFrameRecorder != null) {
+                    count += shortBuffer.limit();
 //                        mFrameRecorder.record(0, shortBuffer);
-                        //TODO 读写分离 - 待优化
-                        mFrameRecorder.record(0, new Buffer[]{shortBuffer});
+                    //TODO 读写分离 - 待优化
+                    mFrameRecorder.record(0, new Buffer[]{shortBuffer});
 //                    }
                 }
             }catch (Exception e) {
@@ -156,7 +161,7 @@ public class MyRecorderWrapper {
 
         @Override
         public void run() {
-            android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_URGENT_AUDIO);
+            android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
             this.isInitialized = false;
 
             if(audioRecord != null) {
@@ -185,9 +190,8 @@ public class MyRecorderWrapper {
         }
     }
 
-
-    private void initVideoRecorder() {
-        mVideoPath = VideoUtil.createFinalPath(MainActivity.getInstance());
+    private void initVideoRecorder(String videoPath) {
+        mVideoPath = videoPath;
         RecorderParameters param = VideoUtil.getRecorderParameter(mResolution);
         mAudioSampleRate = param.getAudioSamplingRate();
 
@@ -205,8 +209,31 @@ public class MyRecorderWrapper {
         mFrameRecorder.setVideoBitrate(param.getVideoBitrate());
         mFrameRecorder.setAudioBitrate(param.getAudioBitrate());
 
-        mAudiorRecordRunnable = new AudioRecordingRunnable();
-        mAudioThread = new Thread(mAudiorRecordRunnable);
+        mAudioRecordRunnable = new AudioRecordingRunnable();
+        mAudioThread = new Thread(mAudioRecordRunnable);
+    }
+
+    private void initVideoRecorder(Context context) {
+        mVideoPath = VideoUtil.createFinalPath(context);
+        RecorderParameters param = VideoUtil.getRecorderParameter(mResolution);
+        mAudioSampleRate = param.getAudioSamplingRate();
+
+        mFrameTime = 1000000 / CameraInstance.DEFAULT_PREVIEW_RATE;
+
+        mFileVideoPath = new File(mVideoPath);
+        mFrameRecorder = new MyRecorder(mVideoPath, 640, 480, 1);
+        mFrameRecorder.setFormat(param.getVideoOutputFormat());
+        mFrameRecorder.setSampleRate(param.getAudioSamplingRate());
+        mFrameRecorder.setFrameRate(param.getVideoFrameRate());
+        mFrameRecorder.setVideoCodec(param.getVideoCodec());
+        mFrameRecorder.setVideoQuality(param.getVideoQuality());
+        mFrameRecorder.setAudioQuality(param.getVideoQuality());
+        mFrameRecorder.setAudioCodec(param.getAudioCodec());
+        mFrameRecorder.setVideoBitrate(param.getVideoBitrate());
+        mFrameRecorder.setAudioBitrate(param.getAudioBitrate());
+
+        mAudioRecordRunnable = new AudioRecordingRunnable();
+        mAudioThread = new Thread(mAudioRecordRunnable);
     }
 
     //开始录制
@@ -258,7 +285,8 @@ public class MyRecorderWrapper {
             try {
 //                mFrameRecorder.setTimestamp(mFrameNumber * mFrameTime * 2);
                 mFrameRecorder.setFrameNumber(mFrameNumber);
-                mFrameRecorder.record(iplImage);
+                mFrameRecorder.record(iplImage, AV_PIX_FMT_RGBA);
+
             } catch (Exception e) {
                 Log.e(LOG_TAG, "录制错误: " + e.getMessage());
             }
@@ -266,12 +294,12 @@ public class MyRecorderWrapper {
     }
 
     //注册录制的视频文件
-    private void registerVideo() {
+    private void registerVideo(Context context) {
         Uri videoiTable = Uri.parse(CONSTANTS.VIDEO_CONTENT_URI);
         VideoUtil.videoContentValues.put(MediaStore.Video.Media.SIZE, new File(mVideoPath).length());
 
         try {
-            mUriVideoPath = MainActivity.getInstance().getContentResolver().insert(videoiTable, VideoUtil.videoContentValues);
+            mUriVideoPath = context.getContentResolver().insert(videoiTable, VideoUtil.videoContentValues);
         } catch (Throwable e) {
             mUriVideoPath = null;
             mVideoPath = null;
@@ -281,7 +309,7 @@ public class MyRecorderWrapper {
     }
 
     //保存录制的视频文件
-    public void saveRecording() {
+    public void saveRecording(Context context) {
         mIsRecordingStarted = false;
         if(mIsRecordingStarted) {
             mRunAudioThread = false;
@@ -293,7 +321,7 @@ public class MyRecorderWrapper {
             mAudioThread = null;
             if(!mIsRecordingSaved) {
                 mIsRecordingSaved = true;
-                registerVideo();
+                registerVideo(context);
                 mFrameRecorder = null;
             } else {
 //                videoTh

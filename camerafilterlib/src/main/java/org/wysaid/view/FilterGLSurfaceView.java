@@ -1,4 +1,9 @@
-package org.wysaid.glfunctions;
+package org.wysaid.view;
+
+/**
+ * Created by wangyang on 15/7/27.
+ */
+
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -7,7 +12,6 @@ import android.graphics.SurfaceTexture;
 import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
-
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.SurfaceHolder;
@@ -15,18 +19,14 @@ import android.view.SurfaceHolder;
 import com.googlecode.javacv.cpp.opencv_core;
 
 import org.wysaid.camera.CameraInstance;
-import org.wysaid.framerenderer.FrameRenderer;
-import org.wysaid.framerenderer.FrameRendererBlur;
-import org.wysaid.framerenderer.FrameRendererEdge;
-import org.wysaid.framerenderer.FrameRendererEmboss;
-import org.wysaid.framerenderer.FrameRendererLerpBlur;
-import org.wysaid.framerenderer.FrameRendererWave;
-import org.wysaid.myutils.ImageUtil;
+import org.wysaid.filter.*;
+
+import org.wysaid.myUtils.Common;
+import org.wysaid.recorder.ImageUtil;
 import org.wysaid.recorder.MyRecorderWrapper;
 
 import java.nio.IntBuffer;
 import java.util.LinkedList;
-
 import java.util.Queue;
 
 import javax.microedition.khronos.egl.EGLConfig;
@@ -35,7 +35,7 @@ import javax.microedition.khronos.opengles.GL10;
 /**
  * Created by wangyang on 15/7/17.
  */
-public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Renderer, SurfaceTexture.OnFrameAvailableListener {
+public class FilterGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Renderer, SurfaceTexture.OnFrameAvailableListener {
 
     public static final String LOG_TAG = Common.LOG_TAG;
 
@@ -55,7 +55,14 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
     private LinkedList<opencv_core.IplImage> mImageList;
 
     private boolean mShouldRecord = false;
+
+    public synchronized boolean isRecording() {
+        return mShouldRecord;
+    }
+
     private int[] mRecordStateLock = new int[0];
+
+    private Context mContext;
 
     class CachedFrame {
         opencv_core.IplImage image;
@@ -245,14 +252,18 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
         return CameraInstance.getInstance();
     }
 
-    public synchronized void startRecording() {
+    public synchronized void startRecording(String filePath) {
 
         if(mShouldRecord) {
             endRecording();
         }
         mImageList = new LinkedList<>();
         mFrameQueue = new LinkedList<>();
-        mVideoRecorder = new MyRecorderWrapper();
+        if(filePath == null || filePath.isEmpty())
+            mVideoRecorder = new MyRecorderWrapper(filePath);
+        else
+            mVideoRecorder = new MyRecorderWrapper(mContext);
+
         mVideoRecorder.startRecording();
         mRecordingRunnable = new RecordingRunnable();
         mRecordingThread = new Thread(mRecordingRunnable);
@@ -291,7 +302,7 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
         mRecordingThread = null;
 
         Log.i(LOG_TAG, "saving recoring...");
-        mVideoRecorder.saveRecording();
+        mVideoRecorder.saveRecording(mContext);
 
         mImageList.clear();
         mImageList = null;
@@ -301,7 +312,7 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
         Log.i(LOG_TAG, "recording OK");
     }
 
-    public MyGLSurfaceView(Context context, AttributeSet attrs) {
+    public FilterGLSurfaceView(Context context, AttributeSet attrs) {
         super(context, attrs);
         Log.i(LOG_TAG, "MyGLSurfaceView Construct...");
 
@@ -320,6 +331,7 @@ public class MyGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Rend
         {
             mIplImageCaches[i] = opencv_core.IplImage.create(640, 480, opencv_core.IPL_DEPTH_8U, 4);
         }
+        mContext = context;
     }
 
     @Override

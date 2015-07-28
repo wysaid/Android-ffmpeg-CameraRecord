@@ -1,10 +1,10 @@
-package org.wysaid.myutils;
+package org.wysaid.recorder;
 
 import android.graphics.Bitmap;
 import android.os.Environment;
 import android.util.Log;
 
-import org.wysaid.glfunctions.Common;
+import org.wysaid.myUtils.Common;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -12,8 +12,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 /**
- * Created by wangyang on 15/7/20.
+ * Created by wangyang on 15/7/27.
  */
+
 public class ImageUtil {
     public static final String LOG_TAG = Common.LOG_TAG;
     public static final File parentPath = Environment.getExternalStorageDirectory();
@@ -54,3 +55,4 @@ public class ImageUtil {
     }
 
 }
+

@@ -5,8 +5,9 @@ import android.os.Build;
 import com.googlecode.javacv.cpp.avcodec;
 
 /**
- * Created by wangyang on 15/7/21.
+ * Created by wangyang on 15/7/27.
  */
+
 
 public class RecorderParameters {
 

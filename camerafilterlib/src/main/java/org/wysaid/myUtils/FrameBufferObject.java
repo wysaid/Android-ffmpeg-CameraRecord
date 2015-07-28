@@ -1,11 +1,12 @@
-package org.wysaid.glfunctions;
+package org.wysaid.myUtils;
 
 import android.opengl.GLES20;
 import android.util.Log;
 
 /**
- * Created by wangyang on 15/7/23.
+ * Created by wangyang on 15/7/27.
  */
+
 public class FrameBufferObject {
     private int mFramebufferID;
 

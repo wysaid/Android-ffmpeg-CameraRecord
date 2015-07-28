@@ -1,11 +1,13 @@
-package org.wysaid.glfunctions;
+package org.wysaid.myUtils;
 
 import android.opengl.GLES20;
 import android.util.Log;
 
 /**
- * Created by wangyang on 15/7/18.
+ * Created by wangyang on 15/7/27.
  */
+
+
 public class ProgramObject {
     public static final String LOG_TAG = Common.LOG_TAG;
 

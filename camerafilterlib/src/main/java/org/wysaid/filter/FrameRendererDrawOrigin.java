@@ -1,4 +1,4 @@
-package org.wysaid.framerenderer;
+package org.wysaid.filter;
 
 import android.opengl.GLES20;
 

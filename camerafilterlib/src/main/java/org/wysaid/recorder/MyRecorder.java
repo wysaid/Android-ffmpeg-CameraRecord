@@ -1,51 +1,3 @@
-/*
- * Copyright (C) 2009,2010,2011,2012,2013 Samuel Audet
- *
- * This file is part of JavaCV.
- *
- * JavaCV is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 2 of the License, or
- * (at your option) any later version (subject to the "Classpath" exception
- * as provided in the LICENSE.txt file that accompanied this code).
- *
- * JavaCV is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with JavaCV.  If not, see <http://www.gnu.org/licenses/>.
- *
- *
- * Based on the output-example.c file included in FFmpeg 0.6.5
- * as well as on the decoding_encoding.c file included in FFmpeg 0.11.1,
- * which are covered by the following copyright notice:
- *
- * Libavformat API example: Output a media file in any supported
- * libavformat format. The default codecs are used.
- *
- * Copyright (c) 2001,2003 Fabrice Bellard
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
- * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- */
-
 package org.wysaid.recorder;
 
 import com.googlecode.javacpp.BytePointer;
@@ -57,7 +9,12 @@ import com.googlecode.javacpp.Pointer;
 import com.googlecode.javacpp.PointerPointer;
 import com.googlecode.javacpp.ShortPointer;
 import com.googlecode.javacv.FrameRecorder;
-
+import com.googlecode.javacv.cpp.avcodec;
+import com.googlecode.javacv.cpp.avformat;
+import com.googlecode.javacv.cpp.avutil;
+import com.googlecode.javacv.cpp.opencv_core;
+import com.googlecode.javacv.cpp.swresample;
+import com.googlecode.javacv.cpp.swscale;
 
 import java.io.File;
 import java.nio.Buffer;
@@ -67,20 +24,112 @@ import java.nio.DoubleBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
-import java.util.Map.Entry;
+import java.util.Map;
 
-import static com.googlecode.javacv.cpp.avcodec.*;
-import static com.googlecode.javacv.cpp.opencv_imgproc.*;
-import static com.googlecode.javacv.cpp.avformat.*;
-import static com.googlecode.javacv.cpp.avutil.*;
-import static com.googlecode.javacv.cpp.opencv_core.*;
-import static com.googlecode.javacv.cpp.swresample.*;
-import static com.googlecode.javacv.cpp.swscale.*;
+import static com.googlecode.javacv.cpp.avcodec.AV_CODEC_ID_AAC;
+import static com.googlecode.javacv.cpp.avcodec.AV_CODEC_ID_FFV1;
+import static com.googlecode.javacv.cpp.avcodec.AV_CODEC_ID_FLV1;
+import static com.googlecode.javacv.cpp.avcodec.AV_CODEC_ID_H263;
+import static com.googlecode.javacv.cpp.avcodec.AV_CODEC_ID_H264;
+import static com.googlecode.javacv.cpp.avcodec.AV_CODEC_ID_HUFFYUV;
+import static com.googlecode.javacv.cpp.avcodec.AV_CODEC_ID_MPEG1VIDEO;
+import static com.googlecode.javacv.cpp.avcodec.AV_CODEC_ID_MPEG2VIDEO;
+import static com.googlecode.javacv.cpp.avcodec.AV_CODEC_ID_MPEG4;
+import static com.googlecode.javacv.cpp.avcodec.AV_CODEC_ID_NONE;
+import static com.googlecode.javacv.cpp.avcodec.AV_CODEC_ID_PCM_S16BE;
+import static com.googlecode.javacv.cpp.avcodec.AV_CODEC_ID_PCM_S16LE;
+import static com.googlecode.javacv.cpp.avcodec.AV_CODEC_ID_PCM_U16BE;
+import static com.googlecode.javacv.cpp.avcodec.AV_CODEC_ID_PCM_U16LE;
+import static com.googlecode.javacv.cpp.avcodec.AV_CODEC_ID_PNG;
+import static com.googlecode.javacv.cpp.avcodec.AV_CODEC_ID_RAWVIDEO;
+import static com.googlecode.javacv.cpp.avcodec.AV_PKT_FLAG_KEY;
+import static com.googlecode.javacv.cpp.avcodec.CODEC_CAP_EXPERIMENTAL;
+import static com.googlecode.javacv.cpp.avcodec.CODEC_FLAG_GLOBAL_HEADER;
+import static com.googlecode.javacv.cpp.avcodec.CODEC_FLAG_QSCALE;
+import static com.googlecode.javacv.cpp.avcodec.FF_MIN_BUFFER_SIZE;
+import static com.googlecode.javacv.cpp.avcodec.av_init_packet;
+import static com.googlecode.javacv.cpp.avcodec.avcodec_alloc_frame;
+import static com.googlecode.javacv.cpp.avcodec.avcodec_close;
+import static com.googlecode.javacv.cpp.avcodec.avcodec_encode_audio2;
+import static com.googlecode.javacv.cpp.avcodec.avcodec_encode_video2;
+import static com.googlecode.javacv.cpp.avcodec.avcodec_fill_audio_frame;
+import static com.googlecode.javacv.cpp.avcodec.avcodec_find_encoder;
+import static com.googlecode.javacv.cpp.avcodec.avcodec_find_encoder_by_name;
+import static com.googlecode.javacv.cpp.avcodec.avcodec_free_frame;
+import static com.googlecode.javacv.cpp.avcodec.avcodec_open2;
+import static com.googlecode.javacv.cpp.avcodec.avpicture_fill;
+import static com.googlecode.javacv.cpp.avcodec.avpicture_get_size;
+import static com.googlecode.javacv.cpp.avformat.AVFMT_GLOBALHEADER;
+import static com.googlecode.javacv.cpp.avformat.AVFMT_NOFILE;
+import static com.googlecode.javacv.cpp.avformat.AVFMT_RAWPICTURE;
+import static com.googlecode.javacv.cpp.avformat.AVIO_FLAG_WRITE;
+import static com.googlecode.javacv.cpp.avformat.av_dump_format;
+import static com.googlecode.javacv.cpp.avformat.av_guess_format;
+import static com.googlecode.javacv.cpp.avformat.av_interleaved_write_frame;
+import static com.googlecode.javacv.cpp.avformat.av_register_all;
+import static com.googlecode.javacv.cpp.avformat.av_write_frame;
+import static com.googlecode.javacv.cpp.avformat.av_write_trailer;
+import static com.googlecode.javacv.cpp.avformat.avformat_alloc_context;
+import static com.googlecode.javacv.cpp.avformat.avformat_network_init;
+import static com.googlecode.javacv.cpp.avformat.avformat_new_stream;
+import static com.googlecode.javacv.cpp.avformat.avformat_write_header;
+import static com.googlecode.javacv.cpp.avformat.avio_close;
+import static com.googlecode.javacv.cpp.avformat.avio_open;
+import static com.googlecode.javacv.cpp.avutil.AVMEDIA_TYPE_AUDIO;
+import static com.googlecode.javacv.cpp.avutil.AVMEDIA_TYPE_VIDEO;
+import static com.googlecode.javacv.cpp.avutil.AV_NOPTS_VALUE;
+import static com.googlecode.javacv.cpp.avutil.AV_PIX_FMT_BGR24;
+import static com.googlecode.javacv.cpp.avutil.AV_PIX_FMT_GRAY16BE;
+import static com.googlecode.javacv.cpp.avutil.AV_PIX_FMT_GRAY16LE;
+import static com.googlecode.javacv.cpp.avutil.AV_PIX_FMT_GRAY8;
+import static com.googlecode.javacv.cpp.avutil.AV_PIX_FMT_NONE;
+import static com.googlecode.javacv.cpp.avutil.AV_PIX_FMT_NV21;
+import static com.googlecode.javacv.cpp.avutil.AV_PIX_FMT_RGB32;
+import static com.googlecode.javacv.cpp.avutil.AV_PIX_FMT_RGBA;
+import static com.googlecode.javacv.cpp.avutil.AV_PIX_FMT_YUV420P;
+import static com.googlecode.javacv.cpp.avutil.AV_SAMPLE_FMT_DBL;
+import static com.googlecode.javacv.cpp.avutil.AV_SAMPLE_FMT_DBLP;
+import static com.googlecode.javacv.cpp.avutil.AV_SAMPLE_FMT_FLT;
+import static com.googlecode.javacv.cpp.avutil.AV_SAMPLE_FMT_FLTP;
+import static com.googlecode.javacv.cpp.avutil.AV_SAMPLE_FMT_NONE;
+import static com.googlecode.javacv.cpp.avutil.AV_SAMPLE_FMT_S16;
+import static com.googlecode.javacv.cpp.avutil.AV_SAMPLE_FMT_S16P;
+import static com.googlecode.javacv.cpp.avutil.AV_SAMPLE_FMT_S32;
+import static com.googlecode.javacv.cpp.avutil.AV_SAMPLE_FMT_S32P;
+import static com.googlecode.javacv.cpp.avutil.AV_SAMPLE_FMT_U8;
+import static com.googlecode.javacv.cpp.avutil.AV_SAMPLE_FMT_U8P;
+import static com.googlecode.javacv.cpp.avutil.FF_QP2LAMBDA;
+import static com.googlecode.javacv.cpp.avutil.av_d2q;
+import static com.googlecode.javacv.cpp.avutil.av_dict_free;
+import static com.googlecode.javacv.cpp.avutil.av_dict_set;
+import static com.googlecode.javacv.cpp.avutil.av_find_nearest_q_idx;
+import static com.googlecode.javacv.cpp.avutil.av_free;
+import static com.googlecode.javacv.cpp.avutil.av_get_bytes_per_sample;
+import static com.googlecode.javacv.cpp.avutil.av_get_default_channel_layout;
+import static com.googlecode.javacv.cpp.avutil.av_inv_q;
+import static com.googlecode.javacv.cpp.avutil.av_malloc;
+import static com.googlecode.javacv.cpp.avutil.av_rescale_q;
+import static com.googlecode.javacv.cpp.avutil.av_sample_fmt_is_planar;
+import static com.googlecode.javacv.cpp.avutil.av_samples_get_buffer_size;
+import static com.googlecode.javacv.cpp.opencv_core.IPL_DEPTH_16S;
+import static com.googlecode.javacv.cpp.opencv_core.IPL_DEPTH_16U;
+import static com.googlecode.javacv.cpp.opencv_core.IPL_DEPTH_8S;
+import static com.googlecode.javacv.cpp.opencv_core.IPL_DEPTH_8U;
+import static com.googlecode.javacv.cpp.swresample.swr_alloc_set_opts;
+import static com.googlecode.javacv.cpp.swresample.swr_convert;
+import static com.googlecode.javacv.cpp.swresample.swr_free;
+import static com.googlecode.javacv.cpp.swresample.swr_init;
+import static com.googlecode.javacv.cpp.swscale.SWS_BILINEAR;
+import static com.googlecode.javacv.cpp.swscale.sws_freeContext;
+import static com.googlecode.javacv.cpp.swscale.sws_getCachedContext;
+import static com.googlecode.javacv.cpp.swscale.sws_scale;
 
 /**
- *
+ * Created by wangyang on 15/7/27.
  * @author Samuel Audet
  */
+
+
 public class MyRecorder extends FrameRecorder {
     public static MyRecorder createDefault(File f, int w, int h)   throws Exception { return new MyRecorder(f, w, h); }
     public static MyRecorder createDefault(String f, int w, int h) throws Exception { return new MyRecorder(f, w, h); }
@@ -144,8 +193,8 @@ public class MyRecorder extends FrameRecorder {
 
         this.interleaved = true;
 
-        this.video_pkt = new AVPacket();
-        this.audio_pkt = new AVPacket();
+        this.video_pkt = new avcodec.AVPacket();
+        this.audio_pkt = new avcodec.AVPacket();
     }
     public void release() throws Exception {
         synchronized (com.googlecode.javacv.cpp.avcodec.class) {
@@ -229,11 +278,11 @@ public class MyRecorder extends FrameRecorder {
     }
 
     private String filename;
-    private AVFrame picture, tmp_picture;
+    private avutil.AVFrame picture, tmp_picture;
     private BytePointer picture_buf;
     private BytePointer video_outbuf;
     private int video_outbuf_size;
-    private AVFrame frame;
+    private avutil.AVFrame frame;
     private Pointer[] samples_in;
     private BytePointer[] samples_out;
     private PointerPointer samples_in_ptr;
@@ -241,14 +290,14 @@ public class MyRecorder extends FrameRecorder {
     private BytePointer audio_outbuf;
     private int audio_outbuf_size;
     private int audio_input_frame_size;
-    private AVOutputFormat oformat;
-    private AVFormatContext oc;
-    private AVCodec video_codec, audio_codec;
-    private AVCodecContext video_c, audio_c;
-    private AVStream video_st, audio_st;
-    private SwsContext img_convert_ctx;
-    private SwrContext samples_convert_ctx;
-    private AVPacket video_pkt, audio_pkt;
+    private avformat.AVOutputFormat oformat;
+    private avformat.AVFormatContext oc;
+    private avcodec.AVCodec video_codec, audio_codec;
+    private avcodec.AVCodecContext video_c, audio_c;
+    private avformat.AVStream video_st, audio_st;
+    private swscale.SwsContext img_convert_ctx;
+    private swresample.SwrContext samples_convert_ctx;
+    private avcodec.AVPacket video_pkt, audio_pkt;
     private int[] got_video_packet, got_audio_packet;
 
     @Override public int getFrameNumber() {
@@ -331,8 +380,8 @@ public class MyRecorder extends FrameRecorder {
                 throw new Exception("avcodec_find_encoder() error: Video codec not found.");
             }
 
-            AVRational frame_rate = av_d2q(frameRate, 1001000);
-            AVRational supported_framerates = video_codec.supported_framerates();
+            avutil.AVRational frame_rate = av_d2q(frameRate, 1001000);
+            avutil.AVRational supported_framerates = video_codec.supported_framerates();
             if (supported_framerates != null) {
                 int idx = av_find_nearest_q_idx(frame_rate, supported_framerates);
                 frame_rate = supported_framerates.position(idx);
@@ -396,7 +445,7 @@ public class MyRecorder extends FrameRecorder {
             } else if (video_c.codec_id() == AV_CODEC_ID_H264) {
                 // default to constrained baseline to produce content that plays back on anything,
                 // without any significant tradeoffs for most use cases
-                video_c.profile(AVCodecContext.FF_PROFILE_H264_CONSTRAINED_BASELINE);
+                video_c.profile(avcodec.AVCodecContext.FF_PROFILE_H264_CONSTRAINED_BASELINE);
             }
 
             // some formats want stream headers to be separate
@@ -405,7 +454,7 @@ public class MyRecorder extends FrameRecorder {
             }
 
             if ((video_codec.capabilities() & CODEC_CAP_EXPERIMENTAL) != 0) {
-                video_c.strict_std_compliance(AVCodecContext.FF_COMPLIANCE_EXPERIMENTAL);
+                video_c.strict_std_compliance(avcodec.AVCodecContext.FF_COMPLIANCE_EXPERIMENTAL);
             }
         }
 
@@ -474,7 +523,7 @@ public class MyRecorder extends FrameRecorder {
             }
 
             if ((audio_codec.capabilities() & CODEC_CAP_EXPERIMENTAL) != 0) {
-                audio_c.strict_std_compliance(AVCodecContext.FF_COMPLIANCE_EXPERIMENTAL);
+                audio_c.strict_std_compliance(avcodec.AVCodecContext.FF_COMPLIANCE_EXPERIMENTAL);
             }
         }
 
@@ -483,11 +532,11 @@ public class MyRecorder extends FrameRecorder {
         /* now that all the parameters are set, we can open the audio and
            video codecs and allocate the necessary encode buffers */
         if (video_st != null) {
-            AVDictionary options = new AVDictionary(null);
+            avutil.AVDictionary options = new avutil.AVDictionary(null);
             if (videoQuality >= 0) {
                 av_dict_set(options, "crf", "" + videoQuality, 0);
             }
-            for (Entry<String, String> e : videoOptions.entrySet()) {
+            for (Map.Entry<String, String> e : videoOptions.entrySet()) {
                 av_dict_set(options, e.getKey(), e.getValue(), 0);
             }
             /* open the codec */
@@ -531,11 +580,11 @@ public class MyRecorder extends FrameRecorder {
         }
 
         if (audio_st != null) {
-            AVDictionary options = new AVDictionary(null);
+            avutil.AVDictionary options = new avutil.AVDictionary(null);
             if (audioQuality >= 0) {
                 av_dict_set(options, "crf", "" + audioQuality, 0);
             }
-            for (Entry<String, String> e : audioOptions.entrySet()) {
+            for (Map.Entry<String, String> e : audioOptions.entrySet()) {
                 av_dict_set(options, e.getKey(), e.getValue(), 0);
             }
             /* open the codec */
@@ -574,9 +623,9 @@ public class MyRecorder extends FrameRecorder {
             for (int i = 0; i < samples_out.length; i++) {
                 samples_out[i] = new BytePointer(av_malloc(data_size)).capacity(data_size);
             }
-            samples_in = new Pointer[AVFrame.AV_NUM_DATA_POINTERS];
-            samples_in_ptr  = new PointerPointer(AVFrame.AV_NUM_DATA_POINTERS);
-            samples_out_ptr = new PointerPointer(AVFrame.AV_NUM_DATA_POINTERS);
+            samples_in = new Pointer[avutil.AVFrame.AV_NUM_DATA_POINTERS];
+            samples_in_ptr  = new PointerPointer(avutil.AVFrame.AV_NUM_DATA_POINTERS);
+            samples_out_ptr = new PointerPointer(avutil.AVFrame.AV_NUM_DATA_POINTERS);
 
             /* allocate the audio frame */
             if ((frame = avcodec_alloc_frame()) == null) {
@@ -587,7 +636,7 @@ public class MyRecorder extends FrameRecorder {
 
         /* open the output file, if needed */
         if ((oformat.flags() & AVFMT_NOFILE) == 0) {
-            AVIOContext pb = new AVIOContext(null);
+            avformat.AVIOContext pb = new avformat.AVIOContext(null);
             if ((ret = avio_open(pb, filename, AVIO_FLAG_WRITE)) < 0) {
                 release();
                 throw new Exception("avio_open error() error " + ret + ": Could not open '" + filename + "'");
@@ -603,8 +652,8 @@ public class MyRecorder extends FrameRecorder {
         if (oc != null) {
             try {
                 /* flush all the buffers */
-                while (video_st != null && record((IplImage)null, AV_PIX_FMT_NONE));
-                while (audio_st != null && record((AVFrame)null));
+                while (video_st != null && record((opencv_core.IplImage)null, AV_PIX_FMT_NONE));
+                while (audio_st != null && record((avutil.AVFrame)null));
 
                 if (interleaved && video_st != null && audio_st != null) {
                     av_interleaved_write_frame(oc, null);
@@ -620,61 +669,11 @@ public class MyRecorder extends FrameRecorder {
         }
     }
 
-    // 逆时针旋转图像degree角度（原尺寸）
-    private IplImage rotateImage(IplImage img)
-    {
-     	/*IplImage img_rotate = IplImage.create(img.width(), img.height(),  IPL_DEPTH_8U, 2);
-     	//旋转中心为图像中心
-     	CvPoint2D32f center = new CvPoint2D32f(); 
-     	center.x(img.width()/2.0f+0.5f);
-     	center.y(img.height()/2.0f+0.5f);
-     	//计算二维旋转的仿射变换矩阵
-     	CvMat cvMat = cvCreateMat(2, 3, CV_32F);
-     	
-     	cvZero (img_rotate);
-     	cv2DRotationMatrix( center, degree,1.0, cvMat);*/
-
-        //变换图像，并用黑色填充其余值
-        //cvWarpAffine(img,img_rotate, cvMat,CV_INTER_LINEAR+CV_WARP_FILL_OUTLIERS,cvScalarAll(0) );
-        IplImage img_rotate = IplImage.create(img.height(),img.width(),  IPL_DEPTH_8U, 2);
-        cvTranspose(img, img_rotate);
-        cvTranspose(img_rotate, img);
-        //cvTranspose(img, img_rotate);
-        cvFlip(img,null,-1);
-
-        return img;
-    }
-
-    public static IplImage rotate(IplImage image, double angle) {
-
-
-        IplImage copy = cvCloneImage(image);
-        IplImage rotatedImage = cvCreateImage(cvGetSize(copy), copy.depth(), copy.nChannels());
-
-        //Define Rotational Matrix
-        CvMat mapMatrix = cvCreateMat(2, 3, CV_32FC1);
-
-        //Define Mid Point
-        CvPoint2D32f centerPoint = new CvPoint2D32f();
-        centerPoint.x(copy.width() / 2);
-        centerPoint.y(copy.height() / 2);
-
-        //Get Rotational Matrix
-        cv2DRotationMatrix(centerPoint, angle, 1.0, mapMatrix);
-
-        //Rotate the Image
-        cvWarpAffine(copy, rotatedImage, mapMatrix, CV_INTER_CUBIC + CV_WARP_FILL_OUTLIERS, cvScalarAll(170));
-        cvReleaseImage(copy);
-        cvReleaseMat(mapMatrix);
-
-        return rotatedImage;
-    }
-
-
-    public boolean record(IplImage image) throws Exception {
+    public boolean record(opencv_core.IplImage image) throws Exception {
         return record(image, AV_PIX_FMT_NONE);
     }
-    public boolean record(IplImage image, int pixelFormat) throws Exception {
+
+    public boolean record(opencv_core.IplImage image, int pixelFormat) throws Exception {
         if (video_st == null) {
             throw new Exception("No video output stream (Is imageWidth > 0 && imageHeight > 0 and has start() been called?)");
         }
@@ -722,13 +721,13 @@ public class MyRecorder extends FrameRecorder {
                 if (img_convert_ctx == null) {
                     throw new Exception("sws_getCachedContext() error: Cannot initialize the conversion context.");
                 }
-                avpicture_fill(new AVPicture(tmp_picture), data, pixelFormat, width, height);
-                avpicture_fill(new AVPicture(picture), picture_buf, video_c.pix_fmt(), video_c.width(), video_c.height());
+                avpicture_fill(new avcodec.AVPicture(tmp_picture), data, pixelFormat, width, height);
+                avpicture_fill(new avcodec.AVPicture(picture), picture_buf, video_c.pix_fmt(), video_c.width(), video_c.height());
                 tmp_picture.linesize(0, step);
                 sws_scale(img_convert_ctx, new PointerPointer(tmp_picture), tmp_picture.linesize(),
                         0, height, new PointerPointer(picture), picture.linesize());
             } else {
-                avpicture_fill(new AVPicture(picture), data, pixelFormat, width, height);
+                avpicture_fill(new avcodec.AVPicture(picture), data, pixelFormat, width, height);
                 picture.linesize(0, step);
             }
         }
@@ -742,7 +741,7 @@ public class MyRecorder extends FrameRecorder {
             video_pkt.flags(video_pkt.flags() | AV_PKT_FLAG_KEY);
             video_pkt.stream_index(video_st.index());
             video_pkt.data(new BytePointer(picture));
-            video_pkt.size(Loader.sizeof(AVPicture.class));
+            video_pkt.size(Loader.sizeof(avcodec.AVPicture.class));
         } else {
             /* encode the image */
             av_init_packet(video_pkt);
@@ -783,7 +782,7 @@ public class MyRecorder extends FrameRecorder {
         return picture.key_frame() != 0;
     }
 
-    @Override public boolean record(int sampleRate, Buffer ... samples) throws Exception {
+    @Override public boolean record(int sampleRate, Buffer... samples) throws Exception {
         if (audio_st == null) {
             throw new Exception("No audio output stream (Is audioChannels > 0 and has start() been called?)");
         }
@@ -909,7 +908,7 @@ public class MyRecorder extends FrameRecorder {
         return frame.key_frame() != 0;
     }
 
-    boolean record(AVFrame frame) throws Exception {
+    boolean record(avutil.AVFrame frame) throws Exception {
         int ret;
 
         av_init_packet(audio_pkt);

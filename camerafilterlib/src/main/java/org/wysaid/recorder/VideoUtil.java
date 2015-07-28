@@ -1,4 +1,4 @@
-package org.wysaid.myutils;
+package org.wysaid.recorder;
 
 import android.app.Activity;
 import android.content.ContentValues;
@@ -7,19 +7,16 @@ import android.hardware.Camera;
 import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore;
-
 import android.view.Surface;
-
-import org.wysaid.recorder.CONSTANTS;
-import org.wysaid.recorder.RecorderParameters;
 
 import java.io.File;
 import java.util.Comparator;
 import java.util.List;
 
 /**
- * Created by wangyang on 15/7/21.
+ * Created by wangyang on 15/7/27.
  */
+
 public class VideoUtil {
 
     public static ContentValues videoContentValues = null;
