@@ -25,6 +25,7 @@ import org.wysaid.myUtils.Common;
 import org.wysaid.recorder.ImageUtil;
 import org.wysaid.recorder.MyRecorderWrapper;
 
+import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -456,7 +457,8 @@ public class FilterGLSurfaceView extends GLSurfaceView implements GLSurfaceView.
                 Log.i(LOG_TAG, "Taking shot...");
                 GLES20.glReadPixels(drawViewport.x, drawViewport.y, drawViewport.width, drawViewport.height, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, mBuffer);
 
-                Bitmap bmp = Bitmap.createBitmap(mBuffer.array(), drawViewport.width, drawViewport.height, Bitmap.Config.ARGB_8888);
+                Bitmap bmp = Bitmap.createBitmap(drawViewport.width, drawViewport.height, Bitmap.Config.ARGB_8888);
+                bmp.copyPixelsFromBuffer(mBuffer);
                 ImageUtil.saveBitmap(bmp);
             }
         });

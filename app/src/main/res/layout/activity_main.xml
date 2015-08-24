@@ -42,7 +42,7 @@
                 android:layout_width="100dp"
                 android:layout_height="match_parent"
                 android:id="@+id/recordBtn"
-                android:text="点按录像"/>
+                android:text="按住录像"/>
 
         </LinearLayout>
     </HorizontalScrollView>
