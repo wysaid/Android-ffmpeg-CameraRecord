@@ -1,158 +1,101 @@
 package org.wysaid.filtervideocamera;
 
-import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
-import android.widget.SeekBar;
 
-import org.wysaid.view.FilterGLSurfaceView;
-import org.wysaid.view.FilterGLSurfaceView.FilterButtons;
+public class MainActivity extends ActionBarActivity {
 
+    public static final String LOG_TAG = "wysaid";
 
-public class MainActivity extends Activity {
+    public static class DemoClassDescription {
+        String activityName;
+        String title;
+//        DemoClassDescription() {
+//            activityName = null;
+//            title = null;
+//        }
 
-    private Button mTakePicBtn;
-    private Button mRecordBtn;
-    private FilterGLSurfaceView mGLSurfaceView;
-    private SeekBar mSeekBar;
-
-    public final static String LOG_TAG = FilterGLSurfaceView.LOG_TAG;
-
-    public static MainActivity mCurrentInstance = null;
-    public static MainActivity getInstance() {
-        return mCurrentInstance;
-    }
-
-    public static final String FilterNames[] = {
-            "波纹",
-            "普通模糊",
-            "浮雕",
-            "查找边缘",
-            "LerpBlur"
-    };
-
-    public static final FilterButtons[] FilterTypes = {
-            FilterButtons.Filter_Wave,
-            FilterButtons.Filter_Blur,
-            FilterButtons.Filter_Emboss,
-            FilterButtons.Filter_Edge,
-            FilterButtons.Filter_BlurLerp
-    };
-
-    public class MyButtons extends Button {
-
-        public FilterButtons filterType;
-
-        public MyButtons(Context context) {
-            super(context);
+        DemoClassDescription(String _name, String _title) {
+            activityName = _name;
+            title = _title;
         }
     }
 
+    private static final DemoClassDescription mDemos[] = new DemoClassDescription[]{
+            new DemoClassDescription("CameraDemoActivity", "cameraDemo"),
+            new DemoClassDescription("VideoPlayerActivity", "playerDemo")
+    };
+
+    public class MyButton extends Button implements View.OnClickListener {
+        private DemoClassDescription mDemo;
+        public void setDemo(DemoClassDescription demo) {
+            mDemo = demo;
+            setText(mDemo.title);
+            setOnClickListener(this);
+        }
+        MyButton(Context context) {
+            super(context);
+        }
+
+        @Override
+        public void onClick(final View v) {
+            Log.i(LOG_TAG, String.format("%s is clicked!", mDemo.title));
+            Class cls = null;
+            try {
+                cls = Class.forName("org.wysaid.filtervideocamera." + mDemo.activityName);
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+                return ;
+            }
+
+            try {
+                if(cls != null)
+                    startActivity(new Intent(MainActivity.this, cls));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mTakePicBtn = (Button)findViewById(R.id.takeShotBtn);
-        mRecordBtn = (Button)findViewById(R.id.recordBtn);
-        mGLSurfaceView = (FilterGLSurfaceView)findViewById(R.id.myGLSurfaceView);
-        mSeekBar = (SeekBar)findViewById(R.id.seekBar);
+        LinearLayout mLayout = (LinearLayout) findViewById(R.id.buttonLayout);
 
-        mTakePicBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Log.i(LOG_TAG, "Taking Picture...");
-                mGLSurfaceView.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        mGLSurfaceView.takeShot();
-                    }
-                });
-            }
-        });
-
-        mRecordBtn.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                switch (event.getAction()) {
-                    case MotionEvent.ACTION_DOWN:
-                        Log.i(LOG_TAG, "Start recording...");
-                        mGLSurfaceView.setClearColor(1.0f, 0.0f, 0.0f, 0.6f);
-                        mGLSurfaceView.startRecording(null);
-                        break;
-                    case MotionEvent.ACTION_UP:
-                        Log.i(LOG_TAG, "End recording...");
-                        mGLSurfaceView.setClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-                        mGLSurfaceView.endRecording();
-                        Log.i(LOG_TAG, "End recording OK");
-                        break;
-                }
-                return true;
-            }
-        });
-
-        LinearLayout layout = (LinearLayout) findViewById(R.id.menuLinearLayout);
-
-        for(int i = 0; i != FilterTypes.length; ++i) {
-            MyButtons button = new MyButtons(this);
-            button.filterType = FilterTypes[i];
-            button.setText(FilterNames[i]);
-            button.setOnClickListener(mFilterSwitchListener);
-            layout.addView(button);
+        for(DemoClassDescription demo : mDemos) {
+            MyButton btn = new MyButton(this);
+            btn.setDemo(demo);
+            mLayout.addView(btn);
         }
-
-        mSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-                @Override
-                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                    mGLSurfaceView.setIntensity(progress);
-                }
-
-                @Override
-                public void onStartTrackingTouch(SeekBar seekBar) {
-
-                }
-
-                @Override
-                public void onStopTrackingTouch(SeekBar seekBar) {
-
-                }
-            });
-
-        mCurrentInstance = this;
     }
 
-    private View.OnClickListener mFilterSwitchListener = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            MyButtons btn = (MyButtons)v;
-            mGLSurfaceView.setFrameRenderer(btn.filterType);
-        }
-    };
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        System.exit(0);
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        System.exit(0);
-    }
+//    @Override
+//    public void onDestroy() {
+//        super.onDestroy();
+//        System.exit(0);
+//    }
+//
+//    @Override
+//    public void onPause() {
+//        super.onPause();
+//        System.exit(0);
+//    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
+        getMenuInflater().inflate(R.menu.menu_camera_demo, menu);
         return true;
     }
 
