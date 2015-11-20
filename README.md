@@ -1,5 +1,7 @@
 # 简介 #
 
+New: 重新实现了一个较好的版本， 请移步: [android-gpuimage-plus](https://github.com/wysaid/android-gpuimage-plus)
+
 安卓下实现的 实时相机滤镜显示 + 拍照 + 处理结果视频音频录制 demo (需要 javacv, 已配置好)
 
 ## 截屏 ##
