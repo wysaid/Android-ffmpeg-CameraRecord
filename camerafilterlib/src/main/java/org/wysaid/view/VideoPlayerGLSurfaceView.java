@@ -31,8 +31,6 @@ import javax.microedition.khronos.opengles.GL10;
 public class VideoPlayerGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Renderer, SurfaceTexture.OnFrameAvailableListener {
 
     public static final String LOG_TAG = Common.LOG_TAG;
-    public static boolean ENABLE_RESOLUTION_FIX = true;
-    public boolean mResolutionShouldFix = false;
 
     private SurfaceTexture mSurfaceTexture;
     private int mVideoTextureID;
@@ -419,10 +417,6 @@ public class VideoPlayerGLSurfaceView extends GLSurfaceView implements GLSurface
             scaling = mVideoWidth / (float)mVideoHeight;
         }
 
-        if(mResolutionShouldFix) {
-            mDrawer.setRotation((float) (-Math.PI * 0.5));
-        }
-
         float viewRatio = mViewWidth / (float) mViewHeight;
         float s = scaling / viewRatio;
 
@@ -511,16 +505,6 @@ public class VideoPlayerGLSurfaceView extends GLSurfaceView implements GLSurface
                 mVideoWidth = mp.getVideoWidth();
                 mVideoHeight = mp.getVideoHeight();
 
-                //Mark: 临时兼容ios版
-                if(ENABLE_RESOLUTION_FIX && mVideoWidth == 640 && mVideoHeight == 480) {
-                    mVideoWidth = mp.getVideoHeight();
-                    mVideoHeight = mp.getVideoWidth();
-                    mResolutionShouldFix = true;
-                    Log.w(LOG_TAG, "Forcing player rotation!! Be careful for this invalid video!");
-                } else {
-                    mResolutionShouldFix = false;
-                }
-
                 queueEvent(new Runnable() {
                     @Override
                     public void run() {
@@ -570,10 +554,6 @@ public class VideoPlayerGLSurfaceView extends GLSurfaceView implements GLSurface
     private void flushMaskAspectRatio() {
 
         float dstRatio = mVideoWidth / (float)mVideoHeight;
-
-        if(mResolutionShouldFix) {
-            dstRatio = mVideoHeight / (float)mVideoWidth;
-        }
 
         float s = dstRatio / mMaskAspectRatio;
 
