@@ -168,6 +168,7 @@ public class CameraGLSurfaceView extends GLSurfaceView implements GLSurfaceView.
     }
 
     public enum FilterButtons {
+        Filter_Origin,
         Filter_Wave,
         Filter_Blur,
         Filter_Emboss,
@@ -242,6 +243,9 @@ public class CameraGLSurfaceView extends GLSurfaceView implements GLSurfaceView.
                 TextureRenderer renderer = null;
                 boolean isExternalOES = true;
                 switch (filterID) {
+                    case Filter_Origin:
+                        renderer = TextureRendererDrawOrigin.create(isExternalOES);
+                        break;
                     case Filter_Wave:
                         renderer = TextureRendererWave.create(isExternalOES);
                         if (renderer != null)

@@ -38,7 +38,7 @@ public class ProgramObject {
     }
 
     public boolean init(final String vsh, final String fsh) {
-        return init(vsh, fsh, 0);
+        return init(vsh, fsh, mProgramID);
     }
 
     @SuppressLint("Assert")

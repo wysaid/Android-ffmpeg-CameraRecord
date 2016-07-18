@@ -38,6 +38,7 @@ public class CameraDemoActivity extends Activity {
     };
 
     public static final FilterButtons[] FilterTypes = {
+            FilterButtons.Filter_Origin,
             FilterButtons.Filter_Wave,
             FilterButtons.Filter_Emboss,
             FilterButtons.Filter_Edge,
