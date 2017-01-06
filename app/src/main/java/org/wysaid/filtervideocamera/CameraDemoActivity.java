@@ -31,6 +31,7 @@ public class CameraDemoActivity extends Activity {
     }
 
     public static final String FilterNames[] = {
+            "原始",
             "波纹",
             "浮雕",
             "查找边缘",
